@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palm Oil Factory Supervisor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Tambahkan Chart.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -133,7 +134,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 overflow-hidden h-screen">
+<body class="bg-gray-100 dark:bg-gray-900"> <!-- Perbaikan: Hapus overflow-hidden dan h-screen dari sini -->
 
     <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-gray-900 bg-opacity-90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -157,7 +158,7 @@
     </div>
 
     <!-- Main App Container -->
-    <div id="app-container" class="h-screen w-full flex flex-col hidden">
+    <div id="app-container" class="h-screen w-full flex flex-col hidden"> <!-- Perbaikan: h-screen dipindah ke sini -->
         <!-- Header -->
         <header class="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center z-10">
             <h1 id="header-title" class="text-xl font-bold text-emerald-600 dark:text-emerald-400">Kontrol Utama</h1>
@@ -261,7 +262,7 @@
                 </div>
 
                 <!-- Stats Page -->
-                <div id="page-stats" class="page">
+                <div id="page-stats" class="page space-y-6">
                     <div class="grid grid-cols-2 gap-4 text-center">
                         <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                             <h3 class="font-bold text-emerald-500">Total BUKA Hari Ini</h3>
@@ -276,6 +277,18 @@
                             <p id="stats-highlight" class="text-sm text-gray-800 dark:text-white mt-2">-</p>
                         </div>
                     </div>
+                    
+                    <!-- Grafik Statistik -->
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-200 mb-4">Aktivitas Gerbang Hari Ini</h3>
+                        <canvas id="gateActivityChart"></canvas>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                        <h3 class="font-bold text-gray-700 dark:text-gray-200 mb-4">Distribusi Tipe Kegiatan (Semua)</h3>
+                        <canvas id="activityTypeChart"></canvas>
+                    </div>
+
                 </div>
 
                 <!-- Guide Page -->
@@ -299,7 +312,7 @@
                         </div>
                          <div class="space-y-2">
                             <h3 class="font-bold text-lg text-emerald-600 dark:text-emerald-400">5. Statistik</h3>
-                            <p>Halaman ini memberikan rangkuman cepat aktivitas hari ini dan highlight cerdas tentang pola penggunaan.</p>
+                            <p>Halaman ini memberikan rangkuman cepat aktivitas hari ini, highlight cerdas, dan grafik interaktif untuk analisis yang lebih mendalam.</p>
                         </div>
                     </div>
                 </div>
@@ -363,7 +376,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwMzgD_Gs11r5Xhcy0LbHlVTHnEzMyLXAM0uKniweDgwAff6ENuDVsoeZ4irBJiFVLLCA/exec';
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxcjRsCAaG6ymI4H884V91b_EuF6aXbrwQ7Ta5sUCOkwddldnJc4yGpjAbtG9toN19xYw/exec';
         const CORRECT_PASSWORD = '123456';
 
         // --- DOM ELEMENTS ---
@@ -397,6 +410,9 @@
         // --- STATE ---
         let allLogs = [];
         let allNotes = [];
+        let allActivities = [];
+        let gateChartInstance = null;
+        let activityChartInstance = null;
 
         // --- FUNCTIONS ---
 
@@ -460,7 +476,7 @@
         }
 
         // Page navigation
-        function switchPage(pageId) {
+        async function switchPage(pageId) {
             pages.forEach(page => page.classList.remove('active'));
             document.getElementById(`page-${pageId}`).classList.add('active');
 
@@ -482,11 +498,12 @@
             headerTitle.textContent = titles[pageId] || 'Supervisor App';
 
             // Refresh data on page visit
-            if (pageId === 'history' || pageId === 'stats') fetchData();
-            if (pageId === 'notes') fetchNotes();
+            if (pageId === 'history') await fetchLogs();
+            if (pageId === 'notes') await fetchNotes();
+            if (pageId === 'stats') await fetchStatsData();
         }
 
-        // Data Rendering
+        // --- Data Rendering ---
         function renderHistory() {
             const historyOpen = document.getElementById('history-open');
             const historyClose = document.getElementById('history-close');
@@ -522,7 +539,7 @@
             });
         }
 
-        function renderStats() {
+        function renderSummaryStats() {
             const today = new Date().toISOString().slice(0, 10);
             const openToday = allLogs.filter(log => log[0].startsWith(today) && log[1].includes('open')).length;
             const closeToday = allLogs.filter(log => log[0].startsWith(today) && log[1].includes('close')).length;
@@ -575,13 +592,86 @@
             });
         }
         
-        // Data Fetching
-        async function fetchData() {
+        // --- Chart Rendering ---
+        function renderGateActivityChart() {
+            if (gateChartInstance) {
+                gateChartInstance.destroy();
+            }
+            const ctx = document.getElementById('gateActivityChart').getContext('2d');
+            const today = new Date().toISOString().slice(0, 10);
+            
+            const todayLogs = allLogs.filter(log => log[0].startsWith(today));
+            const gate1Open = todayLogs.filter(log => log[1] === 'gate1_open').length;
+            const gate1Close = todayLogs.filter(log => log[1] === 'gate1_close').length;
+            const gate2Open = todayLogs.filter(log => log[1] === 'gate2_open').length;
+            const gate2Close = todayLogs.filter(log => log[1] === 'gate2_close').length;
+
+            gateChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Gerbang Utama', 'Gerbang Belakang'],
+                    datasets: [{
+                        label: 'Buka',
+                        data: [gate1Open, gate2Open],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Tutup',
+                        data: [gate1Close, gate2Close],
+                        backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        function renderActivityTypeChart() {
+            if (activityChartInstance) {
+                activityChartInstance.destroy();
+            }
+            const ctx = document.getElementById('activityTypeChart').getContext('2d');
+            
+            const activityCounts = allActivities.reduce((acc, curr) => {
+                const activityName = curr[3]; // Nama kegiatan ada di indeks ke-3
+                acc[activityName] = (acc[activityName] || 0) + 1;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(activityCounts);
+            const data = Object.values(activityCounts);
+
+            activityChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Kegiatan',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(22, 163, 74, 0.7)', 'rgba(34, 197, 94, 0.7)',
+                            'rgba(5, 150, 105, 0.7)', 'rgba(13, 148, 136, 0.7)',
+                            'rgba(15, 118, 110, 0.7)', 'rgba(16, 185, 129, 0.7)'
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+
+        // --- Data Fetching ---
+        async function fetchLogs() {
             const result = await callGas('getLogs');
             if (result.success) {
                 allLogs = result.data;
                 renderHistory();
-                renderStats();
             }
         }
         
@@ -590,6 +680,23 @@
             if (result.success) {
                 allNotes = result.data;
                 renderNotes();
+            }
+        }
+
+        async function fetchStatsData() {
+            const [logsResult, activitiesResult] = await Promise.all([
+                callGas('getLogs'),
+                callGas('getActivities')
+            ]);
+
+            if (logsResult.success) {
+                allLogs = logsResult.data;
+                renderSummaryStats();
+                renderGateActivityChart();
+            }
+            if (activitiesResult.success) {
+                allActivities = activitiesResult.data;
+                renderActivityTypeChart();
             }
         }
 
@@ -626,23 +733,20 @@
             const buttonId = clickedButton.dataset.id;
             const gateGroup = buttonId.startsWith('gate1') ? 'gate1' : 'gate2';
 
-            // Dapatkan semua tombol dalam grup yang sama (misal: gate1_open dan gate1_close)
             const groupButtons = document.querySelectorAll(`.gate-button[data-id^="${gateGroup}"]`);
 
-            // Jika tombol yang diklik sudah aktif, matikan (nonaktifkan)
             if (clickedButton.classList.contains('active')) {
                 clickedButton.classList.remove('active');
-                // Tidak ada data yang dikirim saat menonaktifkan
                 showToast(`Aksi "${buttonId}" dibatalkan.`);
             } else {
-                // Jika tidak aktif, matikan semua tombol lain di grup itu dan aktifkan yang ini
                 groupButtons.forEach(btn => btn.classList.remove('active'));
                 clickedButton.classList.add('active');
                 
-                // Kirim data ke Google Sheet
-                callGas('logButtonPress', { buttonId });
-                showToast(`Aksi "${buttonId}" berhasil dicatat!`);
-                // Kita tidak perlu menunggu (await) fetchData karena histori akan di-refresh saat tab dibuka
+                callGas('logButtonPress', { buttonId }).then(result => {
+                    if (result.success) {
+                        showToast(`Aksi "${buttonId}" berhasil dicatat!`);
+                    }
+                });
             }
         }
 
@@ -783,8 +887,7 @@
             const observer = new MutationObserver((mutations) => {
                 for (let mutation of mutations) {
                     if (mutation.attributeName === 'class' && !appContainer.classList.contains('hidden')) {
-                        fetchData();
-                        fetchNotes();
+                        // Tidak perlu fetch data awal, karena akan di-fetch saat tab diklik
                         observer.disconnect(); // Stop observing once app is visible
                         break;
                     }

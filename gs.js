@@ -63,6 +63,9 @@ function doPost(e) {
       case 'getLogs':
         result = getLogs();
         break;
+      case 'getActivities': // Tambahkan aksi baru
+        result = getActivities();
+        break;
       case 'addNote':
         result = addNote(payload);
         break;
@@ -91,7 +94,7 @@ function doPost(e) {
   }
 }
 
-// --- FUNGSI-FUNGSI AKSI (sudah dimodifikasi untuk otomatis membuat sheet) ---
+// --- FUNGSI-FUNGSI AKSI ---
 
 function logButtonPress(payload) {
   const sheet = getSheet(SHEETS_CONFIG.logTombol.name);
@@ -103,18 +106,22 @@ function logButtonPress(payload) {
 function addActivity(payload) {
   const sheet = getSheet(SHEETS_CONFIG.logKegiatan.name);
   const timestamp = new Date().toISOString();
-  // Pastikan urutannya sesuai dengan header di SHEETS_CONFIG
   sheet.appendRow([timestamp, payload.date, payload.time, payload.name, payload.description]);
   return 'Aktivitas berhasil dicatat.';
 }
 
 function getLogs() {
   const sheet = getSheet(SHEETS_CONFIG.logTombol.name);
-  // Mulai ambil data dari baris kedua untuk menghindari header
   if (sheet.getLastRow() < 2) return [];
-  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  return data;
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
 }
+
+function getActivities() { // Tambahkan fungsi baru
+  const sheet = getSheet(SHEETS_CONFIG.logKegiatan.name);
+  if (sheet.getLastRow() < 2) return [];
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+}
+
 
 // --- FUNGSI-FUNGSI CATATAN (NOTES) ---
 
@@ -128,20 +135,17 @@ function addNote(payload) {
 
 function getNotes() {
   const sheet = getSheet(SHEETS_CONFIG.catatan.name);
-  // Mulai ambil data dari baris kedua untuk menghindari header
   if (sheet.getLastRow() < 2) return [];
-  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-  return data;
+  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
 }
 
 function updateNote(payload) {
   const sheet = getSheet(SHEETS_CONFIG.catatan.name);
   const data = sheet.getDataRange().getValues();
-  // rowIndex + 1 karena array index dimulai dari 0, sedangkan baris sheet dari 1
   const rowIndex = data.findIndex(row => row[0] === payload.id) + 1;
 
   if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 2).setValue(payload.content); // Kolom 2 (B) untuk konten
+    sheet.getRange(rowIndex, 2).setValue(payload.content);
     return 'Catatan berhasil diperbarui.';
   }
   throw new Error('Catatan tidak ditemukan.');
@@ -150,7 +154,6 @@ function updateNote(payload) {
 function deleteNote(payload) {
   const sheet = getSheet(SHEETS_CONFIG.catatan.name);
   const data = sheet.getDataRange().getValues();
-  // rowIndex + 1 karena array index dimulai dari 0, sedangkan baris sheet dari 1
   const rowIndex = data.findIndex(row => row[0] === payload.id) + 1;
 
   if (rowIndex > 0) {
