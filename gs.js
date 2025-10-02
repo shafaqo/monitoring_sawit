@@ -1,165 +1,125 @@
-// Ganti dengan ID Spreadsheet Anda
-const SPREADSHEET_ID = '1tRIxUQLwhMW2D7YX9b_sKsCtbqahUbQ41xBjtvM7GtA';
-
-// Konfigurasi untuk setiap sheet: nama dan header kolom
-const SHEETS_CONFIG = {
-  logTombol: {
-    name: 'LogTombol',
-    headers: ['Timestamp', 'ButtonID']
-  },
-  logKegiatan: {
-    name: 'LogKegiatan',
-    headers: ['Timestamp', 'Tanggal', 'Jam', 'NamaKegiatan', 'Keterangan']
-  },
-  catatan: {
-    name: 'Catatan',
-    headers: ['ID', 'Konten', 'Timestamp']
-  }
-};
+// Ganti dengan ID Google Sheet Anda. ID bisa ditemukan di URL spreadsheet,
+// contohnya: https://docs.google.com/spreadsheets/d/THIS_IS_THE_ID/edit
+const SPREADSHEET_ID = "GANTI_DENGAN_ID_SPREADSHEET_ANDA"; 
+const LOG_SAKLAR_SHEET_NAME = "LogSaklar";
+const LOG_AKTIVITAS_SHEET_NAME = "LogAktivitas";
 
 /**
- * Fungsi helper untuk mendapatkan sheet.
- * Jika sheet tidak ada, fungsi ini akan membuatnya secara otomatis beserta header-nya.
- * @param {string} sheetName - Nama sheet yang ingin diakses (e.g., 'LogTombol').
- * @returns {Sheet} Objek sheet dari Spreadsheet.
+ * Helper function to check for a sheet and its headers.
+ * If the sheet or headers don't exist, they are created.
+ * @param {Spreadsheet} spreadsheet The active spreadsheet object.
+ * @param {string} sheetName The name of the sheet to check/create.
+ * @param {string[]} headers An array of strings for the header row.
  */
-function getSheet(sheetName) {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(sheetName);
-
-  // Jika sheet tidak ditemukan, buat baru
+function initializeSheet(spreadsheet, sheetName, headers) {
+  let sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    Logger.log(`Sheet "${sheetName}" telah dibuat.`);
-    
-    // Cari konfigurasi header yang sesuai dan tambahkan ke sheet baru
-    for (const key in SHEETS_CONFIG) {
-      if (SHEETS_CONFIG[key].name === sheetName) {
-        sheet.appendRow(SHEETS_CONFIG[key].headers);
-        Logger.log(`Header untuk "${sheetName}" telah ditambahkan.`);
-        break;
-      }
+    sheet = spreadsheet.insertSheet(sheetName);
+    // Set headers for the new sheet and freeze the first row
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.setFrozenRows(1);
+  } else {
+    // If sheet exists, check if headers are missing
+    const firstCell = sheet.getRange("A1").getValue();
+    if (firstCell === "") {
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+        sheet.setFrozenRows(1);
     }
   }
-  
-  return sheet;
 }
 
-// Fungsi utama yang menerima request dari web app
+// Fungsi untuk menangani request POST (mengirim data ke sheet)
 function doPost(e) {
   try {
-    const requestData = JSON.parse(e.postData.contents);
-    const action = requestData.action;
-    const payload = requestData.payload;
-    let result;
+    const data = JSON.parse(e.postData.contents);
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
 
-    switch (action) {
-      case 'logButtonPress':
-        result = logButtonPress(payload);
-        break;
-      case 'addActivity':
-        result = addActivity(payload);
-        break;
-      case 'getLogs':
-        result = getLogs();
-        break;
-      case 'getActivities': // Tambahkan aksi baru
-        result = getActivities();
-        break;
-      case 'addNote':
-        result = addNote(payload);
-        break;
-      case 'getNotes':
-        result = getNotes();
-        break;
-      case 'updateNote':
-        result = updateNote(payload);
-        break;
-      case 'deleteNote':
-        result = deleteNote(payload);
-        break;
-      default:
-        throw new Error('Aksi tidak valid');
+    // Otomatis buat sheet & header jika belum ada
+    initializeSheet(spreadsheet, LOG_SAKLAR_SHEET_NAME, ['Timestamp', 'NamaAlat', 'Aksi', 'DurasiNyalaMenit']);
+    initializeSheet(spreadsheet, LOG_AKTIVITAS_SHEET_NAME, ['Timestamp', 'Tanggal', 'Jam', 'NamaPelaksana', 'NamaKegiatan', 'Keterangan']);
+
+    if (data.type === 'switch_log') {
+      const sheet = spreadsheet.getSheetByName(LOG_SAKLAR_SHEET_NAME);
+      sheet.appendRow([
+        new Date(),
+        data.switchName,
+        data.action,
+        data.durationMinutes || '' 
+      ]);
+    } else if (data.type === 'activity_log') {
+      const sheet = spreadsheet.getSheetByName(LOG_AKTIVITAS_SHEET_NAME);
+      sheet.appendRow([
+        new Date(),
+        data.date,
+        data.time,
+        data.pic,
+        data.name,
+        data.description
+      ]);
+    } else {
+      throw new Error("Tipe data tidak valid.");
     }
-
+    
     return ContentService
-      .createTextOutput(JSON.stringify({ success: true, data: result }))
+      .createTextOutput(JSON.stringify({ status: 'success', message: 'Data berhasil ditambahkan.' }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
-    Logger.log(error.toString());
     return ContentService
-      .createTextOutput(JSON.stringify({ success: false, error: error.toString() }))
+      .createTextOutput(JSON.stringify({ status: 'error', message: error.message }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// --- FUNGSI-FUNGSI AKSI ---
+// Fungsi untuk menangani request GET (mengambil data dari sheet)
+function doGet(e) {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    
+    // Otomatis buat sheet & header jika belum ada
+    initializeSheet(spreadsheet, LOG_SAKLAR_SHEET_NAME, ['Timestamp', 'NamaAlat', 'Aksi', 'DurasiNyalaMenit']);
+    initializeSheet(spreadsheet, LOG_AKTIVITAS_SHEET_NAME, ['Timestamp', 'Tanggal', 'Jam', 'NamaPelaksana', 'NamaKegiatan', 'Keterangan']);
 
-function logButtonPress(payload) {
-  const sheet = getSheet(SHEETS_CONFIG.logTombol.name);
-  const timestamp = new Date().toISOString();
-  sheet.appendRow([timestamp, payload.buttonId]);
-  return 'Log berhasil dicatat.';
-}
+    // Ambil data log saklar
+    const saklarSheet = spreadsheet.getSheetByName(LOG_SAKLAR_SHEET_NAME);
+    const saklarData = saklarSheet.getDataRange().getValues();
+    const saklarHeaders = saklarData.shift(); // Ambil header
+    const saklarJson = saklarData.map(row => {
+      let obj = {};
+      saklarHeaders.forEach((header, i) => {
+        if(header) obj[header] = row[i]
+      });
+      return obj;
+    });
 
-function addActivity(payload) {
-  const sheet = getSheet(SHEETS_CONFIG.logKegiatan.name);
-  const timestamp = new Date().toISOString();
-  sheet.appendRow([timestamp, payload.date, payload.time, payload.name, payload.description]);
-  return 'Aktivitas berhasil dicatat.';
-}
+    // Ambil data log aktivitas
+    const aktivitasSheet = spreadsheet.getSheetByName(LOG_AKTIVITAS_SHEET_NAME);
+    const aktivitasData = aktivitasSheet.getDataRange().getValues();
+    const aktivitasHeaders = aktivitasData.shift(); // Ambil header
+    const aktivitasJson = aktivitasData.map(row => {
+      let obj = {};
+      aktivitasHeaders.forEach((header, i) => {
+        if(header) obj[header] = row[i]
+      });
+      return obj;
+    });
+    
+    const responseData = {
+      status: 'success',
+      data: {
+        saklar: saklarJson,
+        aktivitas: aktivitasJson
+      }
+    };
+    
+    return ContentService
+      .createTextOutput(JSON.stringify(responseData))
+      .setMimeType(ContentService.MimeType.JSON);
 
-function getLogs() {
-  const sheet = getSheet(SHEETS_CONFIG.logTombol.name);
-  if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-}
-
-function getActivities() { // Tambahkan fungsi baru
-  const sheet = getSheet(SHEETS_CONFIG.logKegiatan.name);
-  if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-}
-
-
-// --- FUNGSI-FUNGSI CATATAN (NOTES) ---
-
-function addNote(payload) {
-  const sheet = getSheet(SHEETS_CONFIG.catatan.name);
-  const id = Utilities.getUuid();
-  const timestamp = new Date().toISOString();
-  sheet.appendRow([id, payload.content, timestamp]);
-  return 'Catatan berhasil ditambahkan.';
-}
-
-function getNotes() {
-  const sheet = getSheet(SHEETS_CONFIG.catatan.name);
-  if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
-}
-
-function updateNote(payload) {
-  const sheet = getSheet(SHEETS_CONFIG.catatan.name);
-  const data = sheet.getDataRange().getValues();
-  const rowIndex = data.findIndex(row => row[0] === payload.id) + 1;
-
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 2).setValue(payload.content);
-    return 'Catatan berhasil diperbarui.';
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  throw new Error('Catatan tidak ditemukan.');
-}
-
-function deleteNote(payload) {
-  const sheet = getSheet(SHEETS_CONFIG.catatan.name);
-  const data = sheet.getDataRange().getValues();
-  const rowIndex = data.findIndex(row => row[0] === payload.id) + 1;
-
-  if (rowIndex > 0) {
-    sheet.deleteRow(rowIndex);
-    return 'Catatan berhasil dihapus.';
-  }
-  throw new Error('Catatan tidak ditemukan.');
 }
 
