@@ -3,490 +3,573 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PKS Ketapang Hijau Lestari</title>
+    <title>PKS Ketapang Hijau Lestari - Production Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #22c55e; /* Green-500 */
-            --primary-dark: #16a34a; /* Green-600 */
-            --secondary: #f97316; /* Orange-500 */
-            --background: #f0fdf4; /* Green-50 */
+            --primary: #15803d; /* Green-700 */
+            --primary-dark: #14532d; /* Green-900 */
+            --secondary: #eab308; /* Yellow-500 */
+            --background: #f8fafc; /* Slate-50 */
             --surface: #ffffff;
-            --text-dark: #1f2937; /* Gray-800 */
-            --text-light: #6b7280; /* Gray-500 */
+            --text-dark: #0f172a; /* Slate-900 */
+            --text-light: #64748b; /* Slate-500 */
         }
-        body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--text-dark); }
-        .app-container { max-width: 480px; margin: 0 auto; background-color: var(--surface); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); min-height: 100vh; overflow-x: hidden; position: relative; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--text-dark); -webkit-font-smoothing: antialiased; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .app-container { max-width: 600px; margin: 0 auto; background-color: var(--surface); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); min-height: 100vh; position: relative; overflow-x: hidden; }
         
-        /* Animasi Daun Sawit */
-        .palm-leaf { position: absolute; opacity: 0.08; z-index: 0; animation: sway 15s infinite alternate ease-in-out; pointer-events: none; }
-        .palm-leaf.one { top: -50px; left: -80px; width: 200px; transform: rotate(-30deg); animation-duration: 18s; }
-        .palm-leaf.two { bottom: -60px; right: -70px; width: 250px; transform: rotate(150deg); animation-duration: 22s; }
-        @keyframes sway { from { transform: rotate(-30deg) translateX(-10px); } to { transform: rotate(-20deg) translateX(10px); } }
-        .palm-leaf.two { animation-name: sway-two; }
-        @keyframes sway-two { from { transform: rotate(150deg) translateX(10px); } to { transform: rotate(160deg) translateX(-10px); } }
+        /* Dekorasi Background */
+        .pattern-bg { background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
         
-        /* Welcome Screen */
-        .welcome-screen { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); transition: opacity 1s ease-in-out, visibility 1s ease-in-out; }
+        /* Layar Selamat Datang */
+        .welcome-screen { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); transition: opacity 0.8s ease, visibility 0.8s ease; z-index: 100; }
         .welcome-screen.hidden { opacity: 0; visibility: hidden; }
-        .welcome-screen h1, .welcome-screen h2, .welcome-screen p, .welcome-screen svg { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
-        .welcome-screen svg { animation-delay: 0.2s; }
-        .welcome-screen h1 { animation-delay: 0.4s; }
-        .welcome-screen h2 { animation-delay: 0.6s; }
-        .welcome-screen p { animation-delay: 0.8s; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .nav-item.active svg { color: var(--primary); }
-        .nav-item.active span { color: var(--primary); font-weight: 600; }
-        
-        /* Status Card & Buttons */
-        .switch-card { transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; }
-        .status-badge { transition: all 0.3s; }
-        .btn-action { transition: all 0.2s ease-in-out; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; }
-        .btn-action:active { transform: scale(0.95); }
-        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        
-        /* Master Switch */
-        .master-switch-card { background: linear-gradient(145deg, #ffffff, #f3f4f6); box-shadow:  5px 5px 15px #e5e7eb, -5px -5px 15px #ffffff; }
-        .pulse-red { animation: pulseRed 2s infinite; }
-        .pulse-green { animation: pulseGreen 2s infinite; }
-        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .welcome-screen svg, .welcome-screen h1, .welcome-screen h2, .welcome-screen p { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
+        .welcome-screen svg { animation-delay: 0.1s; } .welcome-screen h1 { animation-delay: 0.3s; }
+        .welcome-screen h2 { animation-delay: 0.5s; } .welcome-screen p { animation-delay: 0.7s; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Tabs */
-        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        /* Navigasi & Tab */
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active svg { transform: translateY(-2px); transition: transform 0.2s ease; }
+        .nav-item.active span { font-weight: 700; }
+        .tab-content { display: none; animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Elemen UI */
+        .btn-action { transition: all 0.2s; position: relative; overflow: hidden; }
+        .btn-action:active:not(:disabled) { transform: scale(0.96); }
+        .btn-action:disabled { cursor: not-allowed; opacity: 0.6; }
         
-        /* Form Inputs */
-        .form-input, .form-select { background-color: #f9fafb; border: 1px solid #d1d5db; transition: border-color 0.2s, box-shadow 0.2s; padding: 0.5rem 0.75rem; border-radius: 0.5rem; }
-        .form-input:focus, .form-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
-        
-        /* Charts */
-        .chart-container { position: relative; height: 250px; width: 100%; }
-        
-        .loader-container { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 3rem 0; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .loader-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+        .loader { border: 3px solid #f1f5f9; border-top: 3px solid var(--primary); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Timeline History */
-        .timeline-item { border-left: 2px solid #e5e7eb; position: relative; padding-left: 1.25rem; padding-bottom: 1rem; }
-        .timeline-item::before { content: ''; position: absolute; left: -0.35rem; top: 0.25rem; width: 0.6rem; height: 0.6rem; border-radius: 50%; background-color: #d1d5db; border: 2px solid white; }
-        .timeline-item.loading::before { background-color: #eab308; }
-        .timeline-item.sterilization::before { background-color: #ef4444; }
-        .timeline-item.unloading::before { background-color: #22c55e; }
-        .timeline-item.idle::before { background-color: #6b7280; }
-        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Progress Bar Anim */
+        .progress-bar-stripes { background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite; }
+        @keyframes progress-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
+
+        /* Toast Notification */
+        .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-width: 300px; }
+        .toast.show { transform: translateX(0); }
+
+        /* Cetak A4 */
         @media print {
-            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .app-container { max-width: 100%; box-shadow: none; margin: 0; padding: 0; overflow: visible; height: auto; min-height: 0; }
-            header, nav, #tab-kontrol, #tab-histori, #tab-kegiatan, #tab-panduan, .btn-print-hide { display: none !important; }
-            #tab-laporan { display: block !important; opacity: 1 !important; transform: none !important; padding: 0; }
+            body { background: white; color: black; }
+            .app-container { max-width: 100%; box-shadow: none; margin: 0; }
+            header, nav, .btn-print-hide { display: none !important; }
+            main { padding: 0 !important; }
+            .shadow-lg, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0; }
+            .print\:hidden { display: none !important; }
+            .print\:block { display: block !important; }
+            .print\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .chart-container { height: 250px !important; page-break-inside: avoid; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
             @page { size: A4 portrait; margin: 1.5cm; }
-            .chart-container { page-break-inside: avoid; height: 200px !important; }
-            .dashboard-card { page-break-inside: avoid; border: 1px solid #e5e7eb; }
-            .bg-white { background-color: white !important; }
-            .shadow-md { box-shadow: none !important; border: 1px solid #ddd; }
-            * { color: black !important; }
-            .bg-green-100 { background-color: #dcfce7 !important; color: #166534 !important; }
-            .bg-red-100 { background-color: #fee2e2 !important; color: #991b1b !important; }
-            .bg-yellow-100 { background-color: #fef9c3 !important; color: #854d0e !important; }
-            .print-title { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
         }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body class="pattern-bg">
 
-    <div id="welcome-screen" class="welcome-screen fixed inset-0 z-50 flex flex-col items-center justify-center p-8 text-white text-center">
-        <svg class="w-24 h-24 mb-4 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight">Selamat Datang di</h1>
-        <h2 class="text-xl md:text-2xl font-semibold text-green-200 mt-2">PKS Ketapang Hijau Lestari</h2>
-        <p class="mt-4 max-w-md text-green-100">Sistem Manajemen & Kontrol Rebusan Cerdas.</p>
+    <div id="toast-container" class="toast flex items-center w-full p-4 space-x-3 bg-white rounded-lg shadow border-l-4" role="alert">
+        <div id="toast-icon" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg"></div>
+        <div id="toast-message" class="ml-3 text-sm font-medium text-gray-700">Notifikasi</div>
+    </div>
+
+    <div id="welcome-screen" class="welcome-screen fixed inset-0 flex flex-col items-center justify-center p-8 text-white text-center">
+        <div class="bg-white/20 p-5 rounded-full backdrop-blur-sm mb-6 border border-white/30 shadow-2xl">
+            <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight drop-shadow-md">PKS Ketapang<br>Hijau Lestari</h1>
+        <div class="h-1 w-16 bg-yellow-400 my-4 rounded-full"></div>
+        <p class="mt-2 text-green-100 font-medium tracking-wide">By Mitra Pelawi</p>
     </div>
     
-    <div class="app-container relative">
-        <svg class="palm-leaf one" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M 50,0 C 20,20 20,80 50,100 M 50,0 C 80,20 80,80 50,100 M 50,10 C 30,30 30,70 50,90 M 50,10 C 70,30 70,70 50,90 M 50,20 C 40,40 40,60 50,80 M 50,20 C 60,40 60,60 50,80" stroke="#16a34a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
-        <svg class="palm-leaf two" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-             <path d="M 50,0 C 20,20 20,80 50,100 M 50,0 C 80,20 80,80 50,100 M 50,10 C 30,30 30,70 50,90 M 50,10 C 70,30 70,70 50,90 M 50,20 C 40,40 40,60 50,80 M 50,20 C 60,40 60,60 50,80" stroke="#16a34a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
-        <header class="bg-white/90 backdrop-blur-md sticky top-0 z-20 px-4 py-3 border-b border-gray-200 flex items-center justify-between shadow-sm">
+    <div class="app-container flex flex-col">
+        <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-5 py-4 border-b border-gray-200 flex items-center justify-between shadow-sm">
             <div class="flex items-center space-x-3">
-                 <div class="bg-green-100 p-2 rounded-xl">
-                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
+                 <div class="bg-green-700 p-2 rounded-xl shadow-inner">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
                 </div>
                 <div>
-                    <h1 id="header-title" class="text-lg font-bold text-gray-800 leading-tight">Kontrol Panel</h1>
-                    <p class="text-xs text-gray-500 font-medium">PKS Ketapang Hijau Lestari</p>
+                    <h1 id="header-title" class="text-lg font-black text-gray-900 tracking-tight">KONTROL PANEL</h1>
+                    <p class="text-[10px] uppercase font-bold text-green-600 tracking-wider">Dashboard Operasional</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
-                 <div id="live-clock" class="text-xs font-semibold text-gray-700 text-right leading-tight"></div>
+            <div class="text-right">
+                 <div id="live-clock-time" class="text-lg font-black text-gray-800 font-mono tracking-tighter leading-none">00:00:00</div>
+                 <div id="live-clock-date" class="text-[10px] font-bold text-gray-500 uppercase mt-1">Senin, 1 Jan</div>
             </div>
         </header>
 
-        <main class="p-4 pb-24 z-10 relative">
+        <main class="flex-1 p-4 pb-24 z-10 overflow-y-auto">
             
-            <div id="tab-kontrol" class="tab-content active">
+            <div id="tab-kontrol" class="tab-content active space-y-5">
                 
-                <!-- Master Switch & Daily Setup -->
-                <div class="master-switch-card p-5 rounded-2xl mb-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-gray-100 to-transparent rounded-bl-full opacity-50"></div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-1">Status Pabrik</h2>
-                    <p class="text-xs text-gray-500 mb-4">Setup operasional harian & Jam Olah</p>
-                    
-                    <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-                        <div class="flex items-center space-x-3">
-                            <div id="master-indicator" class="w-4 h-4 rounded-full bg-red-500 pulse-red"></div>
+                <!-- Master Switch Jam Olah -->
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-5 rounded-2xl shadow-lg border border-slate-700 text-white relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-end mb-4">
                             <div>
-                                <p class="text-sm font-bold text-gray-800" id="master-status-text">Pabrik Berhenti</p>
-                                <p class="text-xs text-gray-500" id="master-time-text">--:--</p>
+                                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Master Kontrol Pabrik</h2>
+                                <div class="flex items-center space-x-2">
+                                    <div id="master-indicator" class="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.6)]"></div>
+                                    <span id="master-status-text" class="font-bold text-lg">STANDBY</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 font-bold block mb-1">JAM OLAH HARI INI</span>
+                                <span id="master-duration-text" class="text-2xl font-black font-mono text-green-400">00:00</span>
                             </div>
                         </div>
-                        <button id="btn-master-toggle" class="bg-gray-800 text-white text-xs font-bold py-2 px-4 rounded-lg shadow hover:bg-gray-700 transition-colors">
-                            MULAI OLAH
+                        <button id="btn-master-toggle" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 flex justify-center items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span id="btn-master-text">MULAI PROSES PABRIK</span>
                         </button>
                     </div>
+                </div>
 
-                    <!-- Setup Harian -->
+                <!-- Setup Harian -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <h2 class="text-sm font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                        <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Setup Data & Shift Harian
+                    </h2>
                     <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div class="bg-white p-3 rounded-xl border border-gray-100">
-                            <label class="text-[10px] uppercase font-bold text-gray-500 mb-1 block">Restan Kemarin (Ton)</label>
-                            <input type="number" id="input-restan" value="0" class="w-full font-bold text-lg text-gray-800 border-none p-0 focus:ring-0 bg-transparent" placeholder="0">
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Shift / Regu</label>
+                            <select id="setup-shift" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none transition-all">
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
+                            </select>
                         </div>
-                        <div class="bg-white p-3 rounded-xl border border-gray-100">
-                            <label class="text-[10px] uppercase font-bold text-gray-500 mb-1 block">Buah Masuk (Ton)</label>
-                            <input type="number" id="input-buah-masuk" value="0" class="w-full font-bold text-lg text-gray-800 border-none p-0 focus:ring-0 bg-transparent" placeholder="0">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Restan (Sisa Kemarin)</label>
+                            <div class="relative">
+                                <input type="number" id="setup-restan" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-primary outline-none pr-10">
+                                <span class="absolute right-3 top-2 text-xs font-bold text-gray-400">Ton</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Buah Masuk (Hari Ini)</label>
+                            <div class="relative">
+                                <input type="number" id="setup-masuk" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold focus:ring-2 focus:ring-primary outline-none pr-10">
+                                <span class="absolute right-3 top-2 text-xs font-bold text-gray-400">Ton</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Detail Posisi Rebusan -->
-                    <div class="bg-white p-3 rounded-xl border border-gray-100 mb-3">
-                        <label class="text-[10px] uppercase font-bold text-gray-500 mb-2 block border-b border-gray-100 pb-1">Posisi Awal Rebusan (Pemetaan Buah)</label>
+                    <!-- Setup Posisi Awal Rebusan -->
+                    <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Posisi Awal Rebusan (Meneruskan Sisa Kemarin)</label>
                         <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <label class="font-semibold text-gray-600 block mb-1">R-1</label>
-                                <select id="setup-r1" class="w-full border border-gray-200 rounded p-1 text-gray-700 bg-gray-50">
-                                    <option value="idle">Kosong / Standby</option>
-                                    <option value="loading">Sudah Isi Buah</option>
-                                    <option value="sterilization">Sedang Rebus</option>
-                                    <option value="unloading">Sedang Bongkar</option>
-                                </select>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold w-6">R1:</span>
+                                <select id="setup-r1" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
                             </div>
-                            <div>
-                                <label class="font-semibold text-gray-600 block mb-1">R-2</label>
-                                <select id="setup-r2" class="w-full border border-gray-200 rounded p-1 text-gray-700 bg-gray-50">
-                                    <option value="idle">Kosong / Standby</option>
-                                    <option value="loading">Sudah Isi Buah</option>
-                                    <option value="sterilization">Sedang Rebus</option>
-                                    <option value="unloading">Sedang Bongkar</option>
-                                </select>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold w-6">R2:</span>
+                                <select id="setup-r2" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
                             </div>
-                            <div>
-                                <label class="font-semibold text-gray-600 block mb-1">R-3</label>
-                                <select id="setup-r3" class="w-full border border-gray-200 rounded p-1 text-gray-700 bg-gray-50">
-                                    <option value="idle">Kosong / Standby</option>
-                                    <option value="loading">Sudah Isi Buah</option>
-                                    <option value="sterilization">Sedang Rebus</option>
-                                    <option value="unloading">Sedang Bongkar</option>
-                                </select>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold w-6">R3:</span>
+                                <select id="setup-r3" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
                             </div>
-                            <div>
-                                <label class="font-semibold text-gray-600 block mb-1">R-4</label>
-                                <select id="setup-r4" class="w-full border border-gray-200 rounded p-1 text-gray-700 bg-gray-50">
-                                    <option value="idle">Kosong / Standby</option>
-                                    <option value="loading">Sudah Isi Buah</option>
-                                    <option value="sterilization">Sedang Rebus</option>
-                                    <option value="unloading">Sedang Bongkar</option>
-                                </select>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold w-6">R4:</span>
+                                <select id="setup-r4" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
                             </div>
                         </div>
                     </div>
 
-                    <button id="btn-save-setup" class="w-full bg-primary/10 text-primary-dark font-bold text-xs py-3 rounded-xl hover:bg-primary/20 transition flex items-center justify-center">
+                    <button id="btn-save-setup" class="w-full mt-4 bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 rounded-lg text-sm transition-colors flex justify-center items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                        Simpan & Terapkan Setup Harian
+                        Simpan Setup & Posisi Awal
                     </button>
                 </div>
 
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-base font-bold text-gray-800">Kontrol Rebusan</h2>
-                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-md font-medium">Kapasitas: 33 Ton/Unit</span>
+                <!-- Live Sisa Ramp -->
+                <div class="bg-gradient-to-r from-amber-100 to-yellow-100 border border-yellow-300 p-4 rounded-2xl flex justify-between items-center shadow-inner relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 text-yellow-300 opacity-30">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6z"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest bg-amber-200/50 inline-block px-2 py-0.5 rounded">Live Update</p>
+                        <p class="text-sm font-bold text-amber-900 mt-1">Sisa Buah di Lantai (Ramp)</p>
+                        <p class="text-[9px] text-amber-700 max-w-[200px] leading-tight mt-1">Estimasi sisa fisik buah belum masuk alat.</p>
+                    </div>
+                    <div class="text-right relative z-10">
+                        <span id="live-sisa-ramp" class="text-3xl font-black text-amber-600 font-mono drop-shadow-sm">0.0</span>
+                        <span class="text-xs font-bold text-amber-700 ml-1">Ton</span>
+                    </div>
                 </div>
-                
+
+                <!-- Kontainer Kartu Saklar Rebusan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="kontrol-container">
-                    <!-- Kontrol Rebusan dirender via JS -->
+                    <!-- Digenerate oleh JS -->
                 </div>
             </div>
 
             <div id="tab-histori" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Histori Aktivitas Alat</h2>
-                    <button id="btn-refresh-histori" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <h2 class="text-xl font-bold text-gray-800">Histori Rebusan</h2>
+                    <button class="btn-refresh-data text-blue-600 p-2 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors" title="Muat Ulang Data">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     </button>
                 </div>
                 
-                <div id="histori-loader" class="loader-container hidden">
-                    <div class="loader"></div>
-                    <p class="mt-3 text-sm font-medium text-gray-500">Memuat data histori sinkronisasi...</p>
-                </div>
-
-                <div id="histori-content" class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 min-h-[50vh]">
-                    <div id="histori-timeline" class="space-y-1">
-                        <!-- Timeline via JS -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 min-h-[50vh]">
+                    <div id="history-loading" class="loader-container">
+                        <div class="loader"></div>
+                        <p class="mt-3 text-sm text-gray-500 font-medium">Menarik data histori...</p>
+                    </div>
+                    <div id="history-content" class="hidden">
+                        <div class="flex space-x-2 mb-4 border-b border-gray-100 pb-4 overflow-x-auto scrollbar-hide">
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full whitespace-nowrap">ISI (Loading)</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full whitespace-nowrap">REBUS (Sterilization)</span>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full whitespace-nowrap">BONGKAR (Unloading)</span>
+                        </div>
+                        <div id="history-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                            <!-- Diisi JS -->
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="tab-kegiatan" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Laporan Kegiatan Harian</h2>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-6">
+            <div id="tab-kegiatan" class="tab-content space-y-5">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <h2 class="text-sm font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+                        <svg class="w-4 h-4 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        Input Laporan Kegiatan Baru
+                    </h2>
                     <form id="activity-form" class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label for="activity-date" class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal</label>
-                                <input type="date" id="activity-date" name="date" class="form-input w-full text-sm" required>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+                                <input type="date" id="activity-date" name="date" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" required>
                             </div>
                             <div>
-                                <label for="activity-time" class="block text-xs font-bold text-gray-600 uppercase mb-1">Jam</label>
-                                <input type="time" id="activity-time" name="time" class="form-input w-full text-sm" required>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Jam</label>
+                                <input type="time" id="activity-time" name="time" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" required>
                             </div>
                         </div>
                         <div>
-                            <label for="activity-pic" class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Pelaksana</label>
-                            <input type="text" id="activity-pic" name="pic" class="form-input w-full text-sm" placeholder="Contoh: Budi">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Nama Pelaksana</label>
+                            <input type="text" name="pic" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Opsional (misal: Budi, Tim Mekanik)">
                         </div>
                         <div>
-                            <label for="activity-name" class="block text-xs font-bold text-gray-600 uppercase mb-1">Kategori Kegiatan</label>
-                            <select id="activity-name" name="name" class="form-select w-full text-sm" required>
-                                <option value="" disabled selected>Pilih Kategori...</option>
-                                <option>Maintenance Alat</option>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Jenis Kegiatan</label>
+                            <select name="name" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none" required>
+                                <option>Maintenance Mesin</option>
                                 <option>Sortasi Buah</option>
-                                <option>Proses Pengolahan</option>
-                                <option>Stasiun Kompond</option>
-                                <option>Uji Laboratorium</option>
-                                <option>Stasiun Timbangan</option>
-                                <option>Dispatch / Pengiriman</option>
-                                <option>Lainnya</option>
+                                <option>Kendala Teknis (Breakdown)</option>
+                                <option>Pembersihan Area</option>
+                                <option>Lain-lain</option>
                             </select>
                         </div>
                         <div>
-                            <label for="activity-desc" class="block text-xs font-bold text-gray-600 uppercase mb-1">Keterangan Detail</label>
-                            <textarea id="activity-desc" name="description" rows="3" class="form-input w-full text-sm" placeholder="Jelaskan detail tindakan yang dilakukan..."></textarea>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan Detail</label>
+                            <textarea name="description" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Tulis rincian masalah atau kegiatan..." required></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-primary text-white font-bold py-3 px-4 rounded-xl shadow-md hover:bg-primary-dark transition-colors duration-300 flex items-center justify-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            <span>Catat Kegiatan</span>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            Simpan Ke Log Server
                         </button>
                     </form>
-                    <div id="form-feedback" class="mt-4"></div>
                 </div>
 
-                <h3 class="text-md font-bold mb-3 text-gray-800">Histori Kegiatan Sebelumnya</h3>
-                <div id="activity-loader" class="loader-container hidden">
-                    <div class="loader"></div>
-                </div>
-                <div id="activity-history-container" class="space-y-3">
-                    <!-- Data kegiatan via JS -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center border-b pb-2 mb-3">
+                         <h2 class="text-sm font-bold text-gray-800">Histori Kegiatan Terbaru</h2>
+                         <button class="btn-refresh-data text-purple-600 hover:text-purple-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>
+                    </div>
+                    <div id="activity-loading" class="loader-container py-4"><div class="loader !border-t-purple-600"></div></div>
+                    <div id="activity-list" class="space-y-4 max-h-[40vh] overflow-y-auto hidden pr-2">
+                        <!-- Diisi JS -->
+                    </div>
                 </div>
             </div>
 
             <div id="tab-laporan" class="tab-content">
-                <div class="print-title hidden font-bold text-2xl text-center mb-6">
-                    LAPORAN OPERASIONAL PKS KETAPANG HIJAU LESTARI<br>
-                    <span class="text-sm font-normal" id="print-date"></span>
-                </div>
-
-                <div class="flex justify-between items-center mb-4 btn-print-hide">
-                    <h2 class="text-xl font-bold text-gray-800">Dasbor Cerdas</h2>
-                    <button onclick="window.print()" class="flex items-center space-x-1 bg-gray-800 text-white px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-gray-700 shadow-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        <span>Cetak A4</span>
-                    </button>
-                </div>
-
-                <div id="report-loader" class="loader-container hidden btn-print-hide">
-                    <div class="loader"></div>
-                    <p class="mt-3 text-gray-600 font-medium">Mengkalkulasi metrik & memuat data...</p>
-                </div>
-
-                <div id="report-content" class="space-y-4">
-                    
-                    <div class="bg-gray-800 p-4 rounded-xl text-white shadow-lg relative overflow-hidden">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">Rincian Buah & Pemetaan Harian</h4>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
-                             <div>
-                                 <p class="text-[10px] text-gray-400">Total Ketersediaan (Ton)</p>
-                                 <p id="counter-ketersediaan" class="text-2xl font-black text-white">0</p>
-                             </div>
-                             <div>
-                                 <p class="text-[10px] text-gray-400">Sedang Diolah (WIP)</p>
-                                 <p id="metric-wip" class="text-2xl font-black text-yellow-400">0</p>
-                             </div>
-                             <div class="col-span-2 border-t border-gray-600 pt-2 mt-1">
-                                 <p class="text-[10px] text-gray-400 mb-1">Sisa Buah Murni di Loading Ramp (Belum Masuk Alat)</p>
-                                 <p id="metric-ramp" class="text-xl font-bold text-gray-200">0 Ton</p>
-                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Smart Metrics Widget -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Widget Kapasitas / Throughput -->
-                        <div class="dashboard-card bg-gradient-to-br from-blue-500 to-blue-700 p-4 rounded-2xl text-white shadow-lg relative overflow-hidden">
-                            <svg class="absolute -right-4 -bottom-4 w-24 h-24 text-blue-400 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-blue-100 mb-1">Throughput Kapasitas</h4>
-                            <div class="flex items-end space-x-2">
-                                <p id="metric-throughput" class="text-3xl font-black">0.00</p>
-                                <p class="text-sm font-medium text-blue-100 mb-1">Ton / Jam</p>
-                            </div>
-                            <div class="mt-3 text-xs text-blue-100 border-t border-blue-400/30 pt-2 flex justify-between">
-                                <span>Jam Olah: <span id="metric-jam-olah" class="font-bold text-white">0 Jam</span></span>
-                                <span>Total Olah: <span id="metric-total-olah" class="font-bold text-white">0 Ton</span></span>
-                            </div>
-                        </div>
-
-                        <!-- Widget Estimasi Restan -->
-                        <div id="card-restan" class="dashboard-card bg-gradient-to-br from-green-500 to-green-700 p-4 rounded-2xl text-white shadow-lg relative overflow-hidden transition-colors duration-500">
-                             <svg class="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-white/80 mb-1">Total Sisa (Restan Akhir)</h4>
-                            <div class="flex items-end space-x-2">
-                                <p id="metric-restan-akhir" class="text-3xl font-black">0</p>
-                                <p class="text-sm font-medium text-white/80 mb-1">Ton</p>
-                            </div>
-                            <div class="mt-3 text-xs text-white/80 border-t border-white/20 pt-2 flex justify-between items-center">
-                                <span>Realisasi: <span id="metric-realisasi" class="font-bold text-white">0%</span></span>
-                                <span>Siklus: <span id="counter-total-siklus" class="font-bold text-white">0</span></span>
-                            </div>
-                            <span id="warning-restan" class="block mt-2 font-bold text-yellow-200 text-[10px] hidden bg-black/20 p-1 rounded">⚠️ Peringatan: Ada buah tidak terolah!</span>
-                        </div>
-                    </div>
-
-                    <!-- Charts -->
-                    <div class="space-y-4">
-                        <div class="bg-white p-4 rounded-xl border border-gray-100 dashboard-card">
-                            <h3 class="font-bold text-gray-800 mb-1 text-sm">Distribusi Siklus Selesai per Rebusan</h3>
-                            <div class="chart-container"><canvas id="activation-count-chart"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="bg-white p-4 rounded-xl border border-gray-100 dashboard-card">
-                        <h3 class="font-bold text-gray-800 mb-3 text-sm">Log Aktivitas Operasional</h3>
-                        <div class="max-h-60 overflow-y-auto rounded-lg border border-gray-100">
-                            <table class="w-full text-left text-xs">
-                                <thead class="uppercase bg-gray-50 text-gray-500 sticky top-0 font-bold">
-                                    <tr>
-                                        <th class="px-3 py-2">Waktu</th>
-                                        <th class="px-3 py-2">Area/Alat</th>
-                                        <th class="px-3 py-2">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="report-table-body" class="text-gray-700">
-                                    <!-- Data via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
                 
-                 <div id="report-error" class="text-center py-10 hidden btn-print-hide">
-                    <div class="bg-red-50 text-red-600 p-4 rounded-xl inline-block border border-red-100">
-                        <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="font-bold">Koneksi Gagal!</p>
-                        <p class="text-xs mt-1">Pastikan URL Apps Script sudah benar dan Anda terhubung ke internet.</p>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-3 sm:space-y-0 btn-print-hide">
+                    <div>
+                        <h2 class="text-xl font-black text-gray-800">Dashboard Analitik</h2>
+                        <p class="text-xs text-gray-500">Evaluasi Performa & Efisiensi</p>
                     </div>
+                    <div class="flex space-x-2 w-full sm:w-auto">
+                        <select id="report-filter" class="flex-1 sm:flex-none bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none shadow-sm">
+                            <option value="today">Hari Ini</option>
+                            <option value="all">Semua Waktu</option>
+                        </select>
+                        <button id="btn-print" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg shadow-sm flex items-center transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Cetak
+                        </button>
+                    </div>
+                </div>
+
+                <div id="report-loader" class="loader-container bg-white rounded-2xl shadow-sm border border-gray-200 h-[50vh] btn-print-hide">
+                    <div class="loader"></div>
+                    <p class="mt-4 text-gray-500 font-medium text-sm animate-pulse">Menghitung matriks efisiensi...</p>
+                </div>
+
+                <div id="report-content" class="space-y-5 hidden print:block">
+                    
+                    <!-- Header Khusus Cetak -->
+                    <div class="hidden print:block text-center mb-6 pb-4 border-b-2 border-gray-800">
+                        <h1 class="text-2xl font-black uppercase">Laporan Produksi PKS</h1>
+                        <h2 class="text-lg font-bold">PT Ketapang Hijau Lestari</h2>
+                        <p class="text-sm" id="print-date-range">Periode: -</p>
+                    </div>
+
+                    <!-- Metrik Utama Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 print:grid-cols-4">
+                        <!-- Card: Total Olah -->
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-12 h-12 bg-green-50 rounded-bl-full -z-0"></div>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative">Total Buah Diolah</h3>
+                            <div class="mt-2 flex items-baseline z-10 relative">
+                                <span id="metric-total-olah" class="text-2xl font-black text-green-700">0</span>
+                                <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Card: Throughput -->
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">
+                                Kapasitas (Throughput)
+                                <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            </h3>
+                            <div class="mt-2 flex items-baseline">
+                                <span id="metric-throughput" class="text-2xl font-black text-blue-700">0.0</span>
+                                <span class="ml-1 text-xs font-bold text-gray-500">Ton/Jam</span>
+                            </div>
+                        </div>
+
+                        <!-- Card: Sisa Ramp -->
+                        <div id="metric-ramp-card" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm transition-colors duration-500">
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase">Sisa Fisik (Ramp)</h3>
+                            <div class="mt-2 flex items-baseline">
+                                <span id="metric-sisa-ramp" class="text-2xl font-black text-gray-800">0</span>
+                                <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Card: Estimasi CPO -->
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                             <div class="absolute top-0 right-0 w-12 h-12 bg-yellow-50 rounded-bl-full -z-0"></div>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative" title="Asumsi Oil Extraction Rate 20%">Est. CPO (OER 20%)</h3>
+                            <div class="mt-2 flex items-baseline z-10 relative">
+                                <span id="metric-est-cpo" class="text-2xl font-black text-yellow-600">0</span>
+                                <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sele-sele / Oret-oretan Perhitungan -->
+                    <div class="bg-yellow-50/80 p-4 rounded-xl border border-yellow-200 shadow-inner font-mono text-[11px] text-gray-800 print:bg-white print:border-gray-400">
+                        <h3 class="font-sans font-bold text-gray-800 mb-2 border-b border-yellow-300 pb-2 flex items-center print:border-gray-400">
+                            <svg class="w-4 h-4 mr-1 text-yellow-600 print:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                            Oret-oretan Perhitungan (Catatan Pelaporan)
+                        </h3>
+                        <div id="sele-sele-content" class="space-y-1.5 ml-1 leading-relaxed">
+                            <!-- Diisi JS -->
+                        </div>
+                    </div>
+
+                    <!-- Grafik Efisiensi -->
+                    <div class="grid grid-cols-1 gap-5 print:gap-2">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="font-bold text-sm text-gray-800 mb-4 text-center">Analisa Rata-rata Lama Rebusan (Menit)</h3>
+                            <div class="chart-container"><canvas id="duration-chart"></canvas></div>
+                            <p class="text-[10px] text-center text-gray-500 mt-2 italic">*Target Standard Operasional: ~90 Menit</p>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
             <div id="tab-panduan" class="tab-content">
-                <h2 class="text-xl font-bold mb-4 text-gray-800">Panduan Penggunaan Cerdas</h2>
-                <div class="space-y-3 text-sm text-gray-700">
-                     <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <h3 class="font-bold text-gray-800 flex items-center"><span class="bg-gray-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs mr-2">1</span> Setup Harian & Posisi Rebusan</h3>
-                        <p class="mt-2 text-gray-600">Setiap pagi, masukkan <strong class="text-gray-800">Restan Kemarin</strong> dan <strong class="text-gray-800">Buah Masuk</strong>. Tentukan juga posisi fisik buah tersebut (Apakah masih di halaman atau sudah di dalam Rebusan 1, 2, 3, 4). Ini penting untuk akurasi perhitungan WIP di dasbor laporan.</p>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Panduan SOP Aplikasi</h2>
+                <div class="space-y-4 text-sm text-gray-700">
+                     <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-gray-800">
+                        <h3 class="font-bold text-base text-gray-900 mb-1">1. Alur Mulai Shift (Penting)</h3>
+                        <ol class="list-decimal pl-5 space-y-1 mt-2">
+                            <li>Buka tab <strong>Kontrol Panel</strong>.</li>
+                            <li>Tentukan <strong>Shift</strong> yang bertugas.</li>
+                            <li>Isi <strong>Restan</strong> (sisa real kemarin) dan <strong>Buah Masuk</strong> hari ini.</li>
+                            <li>Atur posisi awal R1-R4 (Meneruskan proses shift sebelumnya).</li>
+                            <li>Klik <strong>Simpan Setup</strong>.</li>
+                            <li>Tekan <strong>Mulai Proses Pabrik</strong> (Master Switch) untuk mulai menghitung Jam Olah.</li>
+                        </ol>
                     </div>
-                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <h3 class="font-bold text-gray-800 flex items-center"><span class="bg-gray-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs mr-2">2</span> Siklus Rebusan (3 Fase)</h3>
-                        <p class="mt-2 text-gray-600">Pengoperasian saklar kini lebih akurat dengan urutan: <br>
-                        <span class="inline-block mt-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded font-semibold text-xs">Isi Buah</span> ➔ 
-                        <span class="inline-block mt-1 px-2 py-1 bg-red-100 text-red-800 rounded font-semibold text-xs">Rebus</span> ➔ 
-                        <span class="inline-block mt-1 px-2 py-1 bg-green-100 text-green-800 rounded font-semibold text-xs">Bongkar</span>.<br>Siklus dihitung selesai (+33 Ton) saat proses 'Bongkar' ditekan.</p>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                        <h3 class="font-bold text-gray-800 flex items-center"><span class="bg-gray-800 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs mr-2">3</span> Master Switch Jam Olah</h3>
-                        <p class="mt-2 text-gray-600">Klik tombol <strong class="text-gray-800">MULAI OLAH</strong> saat pabrik mulai jalan dan <strong class="text-red-500">AKHIRI OLAH</strong> saat selesai. Ini digunakan sistem untuk menghitung kapasitas throughput pabrik per jam dengan akurat.</p>
-                    </div>
-                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                        <h3 class="font-bold text-blue-800 flex items-center"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Integrasi Backend</h3>
-                        <p class="mt-1 text-blue-700 text-xs">Pastikan variabel <code class="bg-white px-1 rounded text-black font-mono">APPSCRIPT_URL</code> pada kode JS diisi dengan URL Web App dari file Google Apps Script yang telah diperbarui.</p>
+                    <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-primary">
+                        <h3 class="font-bold text-base text-primary mb-1">2. Alur Siklus Rebusan</h3>
+                        <p class="mb-2">Tombol diatur berurutan dan akan terkunci jika fasenya tidak tepat.</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li><strong>ISI:</strong> Masukkan jumlah tonase aktual (bisa diedit misal 32.5), lalu klik ISI.</li>
+                            <li><strong>REBUS:</strong> Klik saat uap/steam dimasukkan. Sistem mulai menghitung waktu rebus.</li>
+                            <li><strong>BONGKAR:</strong> Klik saat pintu dibuka. (Sistem mencatat 1 siklus selesai).</li>
+                            <li><strong>SELESAI:</strong> Alat kembali kosong.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
+
         </main>
 
-        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around z-20 pb-safe btn-print-hide">
-            <button data-tab="kontrol" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 hover:text-gray-600 transition-colors active">
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[600px] bg-white/90 backdrop-blur-md border-t border-gray-200 flex justify-around z-30 pb-safe">
+            <button data-tab="kontrol" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 active transition-colors hover:bg-gray-50">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 16v-2m8-8h2M4 12H2m15.364 6.364l-1.414-1.414M6.05 6.05L4.636 4.636m12.728 0l-1.414 1.414M6.05 17.95l-1.414-1.414m12.728 0l-1.414-1.414"></path></svg>
-                <span class="text-[10px] font-medium">Kontrol</span>
+                <span class="text-[10px] uppercase tracking-wider">Kontrol</span>
             </button>
-            <button data-tab="histori" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 hover:text-gray-600 transition-colors">
+            <button data-tab="histori" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 transition-colors hover:bg-gray-50">
                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span class="text-[10px] font-medium">Histori</span>
+                <span class="text-[10px] uppercase tracking-wider">Histori</span>
             </button>
-            <button data-tab="kegiatan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 hover:text-gray-600 transition-colors">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                <span class="text-[10px] font-medium">Kegiatan</span>
+            <button data-tab="kegiatan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 transition-colors hover:bg-gray-50">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span class="text-[10px] uppercase tracking-wider">Kegiatan</span>
             </button>
-            <button data-tab="laporan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 hover:text-gray-600 transition-colors">
+            <button data-tab="laporan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 transition-colors hover:bg-gray-50">
                  <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                <span class="text-[10px] font-medium">Laporan</span>
+                <span class="text-[10px] uppercase tracking-wider">Laporan</span>
             </button>
-            <button data-tab="panduan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 hover:text-gray-600 transition-colors">
-                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                <span class="text-[10px] font-medium">Panduan</span>
+            <button data-tab="panduan" class="nav-item flex-1 flex flex-col items-center justify-center py-3 text-gray-400 transition-colors hover:bg-gray-50">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-[10px] uppercase tracking-wider">Info</span>
             </button>
         </nav>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- PENGATURAN PENTING ---
-            // GANTI DENGAN URL WEB APP ANDA DARI GOOGLE APPS SCRIPT
+            // --- PENGATURAN URL BACKEND ---
+            // PASTE URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
             const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbykyL36qAYluEcUpTeN0zq2Vr9P6SnAv32iVem00ev9TRgif19OBiEM2ESEI8wIITW8/exec";
-            const KAPASITAS_REBUSAN = 33; // Ton per Rebusan
 
-            // State Aplikasi Kompleks
+            // State Data Aplikasi Lokal
             const state = {
-                master: { isOperating: false, startTime: null, stopTime: null },
-                setup: { restan: 0, buahMasuk: 0, lastUpdate: null },
+                master: { isOperating: false, startTime: null, totalMs: 0 },
+                setup: { shift: 'Shift 1', restan: 0, buahMasuk: 0 },
                 switches: [
-                    { id: 1, name: 'Rebusan 1', phase: 'idle', phaseTime: null },
-                    { id: 2, name: 'Rebusan 2', phase: 'idle', phaseTime: null },
-                    { id: 3, name: 'Rebusan 3', phase: 'idle', phaseTime: null },
-                    { id: 4, name: 'Rebusan 4', phase: 'idle', phaseTime: null },
+                    { id: 1, name: 'Rebusan 1', phase: 'idle', phaseTime: null, tonase: 33 },
+                    { id: 2, name: 'Rebusan 2', phase: 'idle', phaseTime: null, tonase: 33 },
+                    { id: 3, name: 'Rebusan 3', phase: 'idle', phaseTime: null, tonase: 33 },
+                    { id: 4, name: 'Rebusan 4', phase: 'idle', phaseTime: null, tonase: 33 },
                 ],
             };
 
-            const charts = { activationCount: null };
+            const phaseColors = {
+                'idle': { bg: 'bg-gray-100', text: 'text-gray-500', label: 'STANDBY / KOSONG' },
+                'loading': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'ISI BUAH' },
+                'sterilization': { bg: 'bg-red-100', text: 'text-red-700', label: 'PROSES REBUS' },
+                'unloading': { bg: 'bg-green-100', text: 'text-green-700', label: 'BONGKAR BUAH' }
+            };
 
-            // --- ELEMEN DOM UTAMA ---
-            const welcomeScreen = document.getElementById('welcome-screen');
-            const liveClock = document.getElementById('live-clock');
-            const headerTitle = document.getElementById('header-title');
+            let durationChart = null;
+            let rawServerData = null; // Cache data dari server
+            let progressInterval = null;
+
+            // --- FUNGSI UTILITAS (Toast, Clock, LocalStorage) ---
+            function showToast(message, type = 'success') {
+                const toast = document.getElementById('toast-container');
+                const iconContainer = document.getElementById('toast-icon');
+                const msgEl = document.getElementById('toast-message');
+                
+                msgEl.textContent = message;
+                toast.className = 'toast flex items-center w-full p-4 space-x-3 rounded-lg shadow-lg border-l-4';
+                
+                if (type === 'success') {
+                    toast.classList.add('bg-white', 'border-green-500');
+                    iconContainer.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                    iconContainer.className = 'inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-green-100';
+                } else if (type === 'error' || type === 'warning') {
+                    toast.classList.add('bg-white', 'border-red-500');
+                    iconContainer.innerHTML = `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                    iconContainer.className = 'inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-red-100';
+                }
+                
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3500);
+            }
+
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('live-clock-time').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
+                document.getElementById('live-clock-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+                
+                if (state.master.isOperating && state.master.startTime) {
+                    const elapsed = Date.now() - state.master.startTime + state.master.totalMs;
+                    const hrs = Math.floor(elapsed / 3600000);
+                    const mins = Math.floor((elapsed % 3600000) / 60000);
+                    document.getElementById('master-duration-text').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                }
+            }
             
-            // --- FUNGSI API (KIRIM & AMBIL DATA) ---
+            function setDefaultDateTime() {
+                const now = new Date();
+                const dInput = document.getElementById('activity-date');
+                const tInput = document.getElementById('activity-time');
+                if(dInput) dInput.value = now.toISOString().split('T')[0];
+                if(tInput) tInput.value = now.toTimeString().split(' ')[0].substring(0, 5);
+            }
+
+            function saveLocalState() {
+                localStorage.setItem('pksAppStateFinal', JSON.stringify(state));
+            }
+
+            function loadLocalState() {
+                const saved = localStorage.getItem('pksAppStateFinal');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    Object.assign(state.master, parsed.master);
+                    Object.assign(state.setup, parsed.setup);
+                    parsed.switches.forEach(psw => {
+                        const sw = state.switches.find(s => s.id === psw.id);
+                        if(sw) { 
+                            sw.phase = psw.phase; 
+                            sw.phaseTime = psw.phaseTime; 
+                            sw.tonase = psw.tonase || 33;
+                        }
+                    });
+                    
+                    // Repopulate setup form
+                    document.getElementById('setup-shift').value = state.setup.shift;
+                    document.getElementById('setup-restan').value = state.setup.restan;
+                    document.getElementById('setup-masuk').value = state.setup.buahMasuk;
+                    for(let i=1; i<=4; i++) {
+                        const el = document.getElementById(`setup-r${i}`);
+                        const sw = state.switches.find(s => s.id === i);
+                        if(el && sw) el.value = sw.phase;
+                    }
+                }
+            }
+
+            // --- FUNGSI JARINGAN / API ---
             async function sendDataToSheet(payload) {
-                if (APPSCRIPT_URL === "GANTI_DENGAN_URL_APPSCRIPT_ANDA") {
-                    console.warn("Mode Offline: URL Apps Script belum diisi.");
-                    return true; 
+                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) {
+                    showToast("Error: URL Apps Script belum diisi di kode HTML!", "error");
+                    return false;
                 }
                 try {
                     const response = await fetch(APPSCRIPT_URL, {
@@ -495,495 +578,543 @@
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     });
                     const result = await response.json();
-                    return result.status === 'success';
+                    if(result.status === 'success') {
+                        // showToast(result.message, "success"); // Bisa diaktifkan jika ingin notif setiap klik sukses
+                        return true;
+                    } else {
+                        showToast(result.message, "error");
+                        return false;
+                    }
                 } catch (error) {
-                    console.error('API Error:', error);
+                    showToast("Gagal terhubung ke Server Sheet.", "error");
                     return false;
                 }
             }
 
-            async function getDataFromSheet() {
-                if (APPSCRIPT_URL === "GANTI_DENGAN_URL_APPSCRIPT_ANDA") return null;
+            async function fetchServerData() {
+                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) return null;
                 try {
                     const response = await fetch(APPSCRIPT_URL);
-                    if (!response.ok) throw new Error(`HTTP error!`);
                     const result = await response.json();
-                    return result.status === 'success' ? result.data : null;
+                    if(result.status === 'success') {
+                        rawServerData = result.data;
+                        return result.data;
+                    }
                 } catch (error) {
-                    return null;
+                    showToast("Gagal mengambil data laporan.", "error");
                 }
+                return null;
             }
-            
-            // --- TAB NAVIGASI ---
-            const navItems = document.querySelectorAll('.nav-item');
-            const tabContents = document.querySelectorAll('.tab-content');
-            const tabTitles = { kontrol: 'Kontrol Panel', histori: 'Riwayat Operasi', kegiatan: 'Buku Kegiatan', laporan: 'Dasbor Pintar', panduan: 'Bantuan' };
-            
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    const tabId = item.dataset.tab;
-                    navItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-                    tabContents.forEach(c => c.classList.remove('active'));
-                    document.getElementById(`tab-${tabId}`).classList.add('active');
-                    headerTitle.textContent = tabTitles[tabId];
 
-                    if (tabId === 'laporan') loadAndRenderReports();
-                    if (tabId === 'histori') loadHistoriOnly();
-                    if (tabId === 'kegiatan') loadActivityHistory();
-                });
-            });
-
-            // --- STREAMING_CHUNK:Master Switch & Setup Logics... ---
-            const btnMaster = document.getElementById('btn-master-toggle');
-            const masterIndicator = document.getElementById('master-indicator');
-            const masterStatusText = document.getElementById('master-status-text');
-            const masterTimeText = document.getElementById('master-time-text');
-            const inputRestan = document.getElementById('input-restan');
-            const inputBuahMasuk = document.getElementById('input-buah-masuk');
-            const btnSaveSetup = document.getElementById('btn-save-setup');
-
+            // --- LOGIKA UI KONTROL PANEL ---
             function updateMasterUI() {
+                const btn = document.getElementById('btn-master-toggle');
+                const ind = document.getElementById('master-indicator');
+                const txt = document.getElementById('master-status-text');
+                const btnTxt = document.getElementById('btn-master-text');
+
                 if (state.master.isOperating) {
-                    btnMaster.textContent = "AKHIRI OLAH";
-                    btnMaster.className = "bg-red-500 text-white text-xs font-bold py-2 px-4 rounded-lg shadow hover:bg-red-600 transition-colors";
-                    masterIndicator.className = "w-4 h-4 rounded-full bg-green-500 pulse-green";
-                    masterStatusText.textContent = "Pabrik Beroperasi";
-                    masterStatusText.className = "text-sm font-bold text-green-600";
-                    masterTimeText.textContent = `Sejak: ${new Date(state.master.startTime).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}`;
+                    ind.className = 'w-3 h-3 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]';
+                    txt.textContent = 'PABRIK BEROPERASI';
+                    txt.className = 'font-bold text-lg text-green-400';
+                    btn.className = 'w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 flex justify-center items-center';
+                    btnTxt.textContent = 'AKHIRI PROSES PABRIK';
                 } else {
-                    btnMaster.textContent = "MULAI OLAH";
-                    btnMaster.className = "bg-gray-800 text-white text-xs font-bold py-2 px-4 rounded-lg shadow hover:bg-gray-700 transition-colors";
-                    masterIndicator.className = "w-4 h-4 rounded-full bg-red-500 pulse-red";
-                    masterStatusText.textContent = "Pabrik Berhenti";
-                    masterStatusText.className = "text-sm font-bold text-gray-800";
-                    masterTimeText.textContent = state.master.stopTime ? `Berhenti: ${new Date(state.master.stopTime).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}` : "--:--";
+                    ind.className = 'w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]';
+                    txt.textContent = 'STANDBY';
+                    txt.className = 'font-bold text-lg text-red-500';
+                    btn.className = 'w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg active:scale-95 flex justify-center items-center';
+                    btnTxt.textContent = 'MULAI PROSES PABRIK';
                 }
-                saveLocalState();
             }
 
-            btnMaster.addEventListener('click', () => {
-                const now = Date.now();
+            document.getElementById('btn-master-toggle').addEventListener('click', () => {
                 if (!state.master.isOperating) {
                     state.master.isOperating = true;
-                    state.master.startTime = now;
-                    state.master.stopTime = null;
+                    state.master.startTime = Date.now();
                     sendDataToSheet({ type: 'master_log', action: 'start' });
+                    showToast("Pabrik mulai beroperasi", "success");
                 } else {
-                    if (confirm("Apakah Anda yakin ingin menghentikan operasional pabrik hari ini?")) {
-                        state.master.isOperating = false;
-                        state.master.stopTime = now;
-                        sendDataToSheet({ type: 'master_log', action: 'stop' });
-                    }
+                    const elapsed = Date.now() - state.master.startTime;
+                    state.master.totalMs += elapsed;
+                    state.master.isOperating = false;
+                    const durationJam = (state.master.totalMs / 3600000).toFixed(2);
+                    sendDataToSheet({ type: 'master_log', action: 'stop', durasiJam: parseFloat(durationJam) });
+                    state.master.startTime = null;
+                    state.master.totalMs = 0; // Reset utk hari berikutnya
+                    document.getElementById('master-duration-text').textContent = "00:00";
+                    showToast("Operasional pabrik diakhiri", "success");
                 }
                 updateMasterUI();
-            });
-
-            btnSaveSetup.addEventListener('click', () => {
-                state.setup.restan = parseFloat(inputRestan.value) || 0;
-                state.setup.buahMasuk = parseFloat(inputBuahMasuk.value) || 0;
-                state.setup.lastUpdate = Date.now();
-                
-                // Ambil nilai rincian Setup R1-R4
-                const r1_val = document.getElementById('setup-r1').value;
-                const r2_val = document.getElementById('setup-r2').value;
-                const r3_val = document.getElementById('setup-r3').value;
-                const r4_val = document.getElementById('setup-r4').value;
-                
-                // Update State lokal ke Status yang dipilih dari Setup
-                state.switches[0].phase = r1_val;
-                state.switches[1].phase = r2_val;
-                state.switches[2].phase = r3_val;
-                state.switches[3].phase = r4_val;
-                
-                // Render Ulang Switch Card biar menyesuaikan Setup
-                renderSwitches();
-
-                // Send setup to sheet with R1-R4 statuses
-                sendDataToSheet({ 
-                    type: 'setup_log', 
-                    restan: state.setup.restan, 
-                    buahMasuk: state.setup.buahMasuk,
-                    r1: r1_val, r2: r2_val, r3: r3_val, r4: r4_val
-                });
-                
-                btnSaveSetup.innerHTML = '<svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Tersimpan';
-                setTimeout(() => {
-                    btnSaveSetup.innerHTML = '<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg> Simpan & Terapkan Setup Harian';
-                }, 2000);
                 saveLocalState();
             });
 
-            // --- STREAMING_CHUNK:Control Rebusan Cards (3 Phase Logic)... ---
-            const kontrolContainer = document.getElementById('kontrol-container');
-            const phaseColors = {
-                'idle': { bg: 'bg-gray-100', text: 'text-gray-500', label: 'Standby / Kosong' },
-                'loading': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Sudah Isi Buah' },
-                'sterilization': { bg: 'bg-red-100', text: 'text-red-700', label: 'Proses Rebus' },
-                'unloading': { bg: 'bg-green-100', text: 'text-green-700', label: 'Sedang Bongkar' }
-            };
+            document.getElementById('btn-save-setup').addEventListener('click', () => {
+                state.setup.shift = document.getElementById('setup-shift').value;
+                state.setup.restan = parseFloat(document.getElementById('setup-restan').value) || 0;
+                state.setup.buahMasuk = parseFloat(document.getElementById('setup-masuk').value) || 0;
+                
+                const sR1 = document.getElementById('setup-r1').value;
+                const sR2 = document.getElementById('setup-r2').value;
+                const sR3 = document.getElementById('setup-r3').value;
+                const sR4 = document.getElementById('setup-r4').value;
+
+                // Sync status dengan dropdown
+                state.switches[0].phase = sR1; state.switches[1].phase = sR2;
+                state.switches[2].phase = sR3; state.switches[3].phase = sR4;
+
+                sendDataToSheet({ 
+                    type: 'setup_log', 
+                    shift: state.setup.shift, restan: state.setup.restan, buahMasuk: state.setup.buahMasuk,
+                    r1: sR1, r2: sR2, r3: sR3, r4: sR4
+                });
+
+                showToast("Setup Harian Tersimpan", "success");
+                saveLocalState();
+                renderSwitches(); 
+                calculateLiveRamp();
+            });
+
+            // UI Progress Bar Rebusan
+            function updateProgressBars() {
+                state.switches.forEach(sw => {
+                    if (sw.phase === 'sterilization' && sw.phaseTime) {
+                        const elapsedMins = (Date.now() - sw.phaseTime) / 60000;
+                        const targetMins = 90; // Asumsi standar 90 menit
+                        let percent = (elapsedMins / targetMins) * 100;
+                        if(percent > 100) percent = 100;
+                        
+                        const barEl = document.getElementById(`prog-bar-${sw.id}`);
+                        const textEl = document.getElementById(`prog-text-${sw.id}`);
+                        const timeEl = document.getElementById(`prog-time-${sw.id}`);
+                        
+                        if(barEl && textEl && timeEl) {
+                            barEl.style.width = `${percent}%`;
+                            timeEl.textContent = `${Math.floor(elapsedMins)}m`;
+                            if (elapsedMins > 100) {
+                                barEl.className = "h-full rounded-full bg-red-500 progress-bar-stripes"; // Alert over-time
+                                textEl.textContent = "OVERTIME!";
+                                textEl.className = "text-[9px] font-bold text-red-600";
+                            } else {
+                                barEl.className = "h-full rounded-full bg-blue-500 progress-bar-stripes";
+                                textEl.textContent = "Proses Rebus...";
+                                textEl.className = "text-[9px] font-bold text-blue-600";
+                            }
+                        }
+                    }
+                });
+            }
 
             function renderSwitches() {
-                kontrolContainer.innerHTML = '';
+                const container = document.getElementById('kontrol-container');
+                container.innerHTML = '';
+                
                 state.switches.forEach(sw => {
                     const pInfo = phaseColors[sw.phase];
+                    
+                    let progressHtml = '';
+                    if (sw.phase === 'sterilization') {
+                        progressHtml = `
+                            <div class="mt-2 mb-1 w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                                <div id="prog-bar-${sw.id}" class="h-full rounded-full bg-blue-500 progress-bar-stripes" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span id="prog-text-${sw.id}" class="text-[9px] font-bold text-blue-600 uppercase">Menghitung Waktu...</span>
+                                <span id="prog-time-${sw.id}" class="text-[10px] font-black text-gray-700 font-mono">0m</span>
+                            </div>
+                        `;
+                    }
+
                     const card = document.createElement('div');
-                    card.className = 'switch-card bg-white p-4 rounded-xl flex flex-col relative';
+                    card.className = `switch-card bg-white p-4 rounded-2xl border ${sw.phase === 'sterilization' ? 'border-red-200 shadow-md' : 'border-gray-200 shadow-sm'} flex flex-col relative transition-all`;
+                    
                     card.innerHTML = `
                         <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-gray-800">${sw.name}</h3>
-                            <span class="status-badge px-2 py-1 rounded text-[10px] font-bold ${pInfo.bg} ${pInfo.text}">${pInfo.label}</span>
+                            <h3 class="font-bold text-gray-900">${sw.name}</h3>
+                            <span class="px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider ${pInfo.bg} ${pInfo.text}">${pInfo.label}</span>
                         </div>
+                        
+                        <div class="mb-3 bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center justify-between">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Muatan (Ton)</label>
+                            <input type="number" id="input-tonase-${sw.id}" value="${sw.tonase || 33}" step="0.1" class="w-16 bg-white border border-gray-300 rounded px-1.5 py-1 text-xs font-bold text-center text-gray-800 focus:ring-1 focus:ring-primary outline-none" ${sw.phase === 'idle' ? '' : 'disabled'}>
+                        </div>
+                        
+                        ${progressHtml}
+
                         <div class="grid grid-cols-2 gap-2 mt-auto">
-                            <button data-id="${sw.id}" data-action="loading" class="btn-action ${sw.phase === 'idle' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold shadow-sm" ${sw.phase === 'idle' ? '' : 'disabled'}>ISI</button>
-                            <button data-id="${sw.id}" data-action="sterilization" class="btn-action ${sw.phase === 'loading' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold shadow-sm" ${sw.phase === 'loading' ? '' : 'disabled'}>REBUS</button>
-                            <button data-id="${sw.id}" data-action="unloading" class="btn-action ${sw.phase === 'sterilization' ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold shadow-sm" ${sw.phase === 'sterilization' ? '' : 'disabled'}>BONGKAR</button>
-                            <button data-id="${sw.id}" data-action="idle" class="btn-action ${sw.phase === 'unloading' ? 'bg-gray-800 hover:bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold shadow-sm" ${sw.phase === 'unloading' ? '' : 'disabled'}>SELESAI</button>
+                            <button data-id="${sw.id}" data-action="loading" class="btn-action ${sw.phase === 'idle' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'idle' ? '' : 'disabled'}>ISI</button>
+                            <button data-id="${sw.id}" data-action="sterilization" class="btn-action ${sw.phase === 'loading' ? 'bg-red-500 hover:bg-red-600 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'loading' ? '' : 'disabled'}>REBUS</button>
+                            <button data-id="${sw.id}" data-action="unloading" class="btn-action ${sw.phase === 'sterilization' ? 'bg-green-500 hover:bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'sterilization' ? '' : 'disabled'}>BONGKAR</button>
+                            <button data-id="${sw.id}" data-action="idle" class="btn-action ${sw.phase === 'unloading' ? 'bg-gray-800 hover:bg-gray-900 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'unloading' ? '' : 'disabled'}>SELESAI</button>
                         </div>
                     `;
-                    kontrolContainer.appendChild(card);
+                    container.appendChild(card);
                 });
-                
-                // Event Listeners untuk Phase Buttons
+
+                // Attach Events
                 document.querySelectorAll('.btn-action').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const id = parseInt(e.target.dataset.id);
                         const newPhase = e.target.dataset.action;
                         const sw = state.switches.find(s => s.id === id);
                         
+                        let durasiMenit = 0;
+                        if(newPhase === 'loading') {
+                            sw.tonase = parseFloat(document.getElementById(`input-tonase-${id}`).value) || 33;
+                        } else if (newPhase === 'unloading') {
+                            // Menghitung lama waktu rebusan
+                            if(sw.phase === 'sterilization' && sw.phaseTime) {
+                                durasiMenit = ((Date.now() - sw.phaseTime) / 60000).toFixed(2);
+                            }
+                        }
+
                         sw.phase = newPhase;
-                        sw.phaseTime = Date.now();
+                        sw.phaseTime = Date.now(); // Record the exact time phase changed
                         
-                        // Kirim ke server
-                        sendDataToSheet({ type: 'switch_log', switchName: sw.name, action: newPhase });
+                        sendDataToSheet({ 
+                            type: 'switch_log', 
+                            switchName: sw.name, 
+                            action: newPhase, 
+                            tonase: sw.tonase,
+                            durasiMenit: parseFloat(durasiMenit) || 0
+                        });
                         
-                        // Update UI dropdown setup agar matching dengan klik terkini
+                        // Sync visual dropdown setup
                         const setupSelect = document.getElementById(`setup-r${id}`);
                         if(setupSelect) setupSelect.value = newPhase;
                         
                         saveLocalState();
-                        renderSwitches(); // Re-render untuk update UI disabled/enabled button
+                        renderSwitches();
+                        calculateLiveRamp();
+                        updateProgressBars(); // Immediate update
                     });
                 });
             }
 
-            // --- STREAMING_CHUNK:Form Kegiatan & History Logics... ---
-            const activityForm = document.getElementById('activity-form');
-            const formFeedback = document.getElementById('form-feedback');
+            function calculateLiveRamp() {
+                const totalTersedia = state.setup.restan + state.setup.buahMasuk;
+                let buahDalamProses = 0;
+                
+                state.switches.forEach(sw => {
+                    if(sw.phase === 'loading' || sw.phase === 'sterilization') {
+                        buahDalamProses += (sw.tonase || 33);
+                    }
+                });
+                
+                // Secara kasar kurangi yang sudah dibongkar di sesi browser ini 
+                // Untuk lebih valid harusnya baca dr server. Kita sediakan estimasi cepat.
+                let totalSelesaiLokal = 0;
+                if(rawServerData && rawServerData.saklar) {
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    rawServerData.saklar.forEach(log => {
+                        if(log.Aksi === 'unloading' && log.Timestamp && log.Timestamp.startsWith(todayStr)) {
+                            totalSelesaiLokal += parseFloat(log.Tonase || 33);
+                        }
+                    });
+                }
+                
+                let sisaLive = totalTersedia - buahDalamProses - totalSelesaiLokal;
+                if(sisaLive < 0) sisaLive = 0;
+                document.getElementById('live-sisa-ramp').textContent = sisaLive.toFixed(1);
+            }
 
-            activityForm.addEventListener('submit', async (e) => {
+            // --- FUNGSI TAB & LAPORAN ---
+            const tabButtons = document.querySelectorAll('.nav-item');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const target = btn.dataset.tab;
+                    
+                    tabButtons.forEach(b => b.classList.remove('active', 'bg-gray-50'));
+                    btn.classList.add('active', 'bg-gray-50');
+                    
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    document.getElementById(`tab-${target}`).classList.add('active');
+
+                    // Header title logic
+                    const titles = { kontrol: 'KONTROL PANEL', histori: 'LOG REBUSAN', kegiatan: 'LOG KEGIATAN', laporan: 'DASHBOARD ANALITIK', panduan: 'PANDUAN SISTEM' };
+                    document.getElementById('header-title').textContent = titles[target];
+
+                    // Data fetching logic
+                    if (target === 'histori' || target === 'kegiatan' || target === 'laporan') {
+                        if (target === 'laporan') document.getElementById('report-content').classList.add('hidden');
+                        document.getElementById(`${target === 'laporan' ? 'report-loader' : target + '-loading'}`).classList.remove('hidden');
+                        
+                        const data = await fetchServerData();
+                        
+                        document.getElementById(`${target === 'laporan' ? 'report-loader' : target + '-loading'}`).classList.add('hidden');
+                        
+                        if(data) {
+                            if(target === 'histori') renderHistory(data.saklar);
+                            if(target === 'kegiatan') renderActivities(data.aktivitas);
+                            if(target === 'laporan') processReportData();
+                        }
+                    }
+                });
+            });
+
+            // Event Listeners for explicit refresh buttons
+            document.querySelectorAll('.btn-refresh-data').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const tab = e.target.closest('.tab-content').id.replace('tab-', '');
+                    btn.classList.add('animate-spin');
+                    const data = await fetchServerData();
+                    btn.classList.remove('animate-spin');
+                    if(data) {
+                        if(tab === 'histori') renderHistory(data.saklar);
+                        if(tab === 'kegiatan') renderActivities(data.aktivitas);
+                        showToast("Data diperbarui", "success");
+                    }
+                });
+            });
+
+            // Kegiatan Form Submit
+            document.getElementById('activity-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const formData = new FormData(activityForm);
-                const activity = Object.fromEntries(formData.entries());
+                const form = e.target;
+                const formData = new FormData(form);
+                const payload = { type: 'activity_log', ...Object.fromEntries(formData.entries()) };
                 
-                const btn = activityForm.querySelector('button[type="submit"]');
+                const btn = form.querySelector('button[type="submit"]');
                 const origText = btn.innerHTML;
-                btn.innerHTML = `<div class="loader" style="width:20px;height:20px;border-width:2px;border-top-color:white;"></div>`;
+                btn.innerHTML = '<div class="loader !w-5 !h-5 !border-2"></div> Menyimpan...';
                 
-                const success = await sendDataToSheet({ type: 'activity_log', ...activity });
-                
+                const success = await sendDataToSheet(payload);
                 btn.innerHTML = origText;
+                
                 if (success) {
-                    activityForm.reset();
+                    showToast("Laporan kegiatan berhasil disimpan", "success");
+                    form.reset();
                     setDefaultDateTime();
-                    formFeedback.innerHTML = `<div class="bg-green-50 border border-green-200 text-green-700 p-3 rounded-lg text-sm flex items-center"><svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Kegiatan berhasil dicatat!</div>`;
-                    setTimeout(() => formFeedback.innerHTML = '', 4000);
-                    loadActivityHistory(); // Refresh history
-                } else {
-                    formFeedback.innerHTML = `<div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">Gagal mencatat kegiatan.</div>`;
                 }
             });
 
-            async function loadActivityHistory() {
-                const container = document.getElementById('activity-history-container');
-                const loader = document.getElementById('activity-loader');
+            // --- RENDER UI DATA ---
+            function renderHistory(logs) {
+                const container = document.getElementById('history-list');
+                const wrapper = document.getElementById('history-content');
                 container.innerHTML = '';
-                loader.classList.remove('hidden');
+                wrapper.classList.remove('hidden');
 
-                const data = await getDataFromSheet();
-                loader.classList.add('hidden');
+                const colors = { 'loading': 'text-yellow-600 bg-yellow-50 border-yellow-200', 'sterilization': 'text-red-600 bg-red-50 border-red-200', 'unloading': 'text-green-600 bg-green-50 border-green-200' };
+                const labels = { 'loading': 'Isi Buah', 'sterilization': 'Mulai Rebus', 'unloading': 'Bongkar' };
 
-                if (data && data.aktivitas) {
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const recentActivities = data.aktivitas
-                        .filter(a => a.Tanggal && a.Tanggal.startsWith(todayStr))
-                        .reverse().slice(0, 10);
+                [...logs].reverse().slice(0, 50).forEach(log => {
+                    if(!log.Timestamp || log.Aksi === 'idle' || log.Aksi === 'close' || log.Aksi === 'open') return; // Filter old structure
+                    const dt = luxon.DateTime.fromISO(new Date(log.Timestamp).toISOString());
+                    const c = colors[log.Aksi] || 'text-gray-600 bg-gray-50';
+                    const durasi = log.DurasiMenit ? `<span class="ml-auto text-[10px] font-bold text-gray-500 bg-white px-2 py-0.5 rounded border">Durasi: ${parseFloat(log.DurasiMenit).toFixed(0)}m</span>` : '';
                     
-                    if (recentActivities.length === 0) {
-                        container.innerHTML = '<p class="text-sm text-gray-500 text-center py-4">Belum ada kegiatan tercatat hari ini.</p>';
-                        return;
-                    }
-
-                    recentActivities.forEach(act => {
-                        container.innerHTML += `
-                            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 flex flex-col">
-                                <div class="flex justify-between items-start mb-1">
-                                    <span class="text-xs font-bold text-gray-800">${act.NamaKegiatan}</span>
-                                    <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded">${act.Jam}</span>
+                    container.innerHTML += `
+                        <div class="flex items-center p-3 rounded-xl border ${c}">
+                            <div class="flex-1">
+                                <div class="flex items-center">
+                                    <h4 class="font-bold text-sm mr-2">${log.NamaAlat}</h4>
+                                    <span class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded bg-white shadow-sm border border-black/5">${labels[log.Aksi] || log.Aksi}</span>
                                 </div>
-                                <p class="text-xs text-gray-600 mt-1">${act.Keterangan}</p>
-                                <p class="text-[10px] text-gray-400 mt-2 flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> ${act.NamaPelaksana || 'Anonim'}</p>
+                                <p class="text-xs opacity-75 font-medium mt-0.5">${dt.toFormat('dd LLL yyyy, HH:mm')}</p>
                             </div>
-                        `;
-                    });
-                }
-            }
-
-            document.getElementById('btn-refresh-histori').addEventListener('click', loadHistoriOnly);
-
-            async function loadHistoriOnly() {
-                const container = document.getElementById('histori-timeline');
-                const loader = document.getElementById('histori-loader');
-                const content = document.getElementById('histori-content');
-                
-                content.classList.add('hidden');
-                loader.classList.remove('hidden');
-                
-                const data = await getDataFromSheet();
-                
-                loader.classList.add('hidden');
-                content.classList.remove('hidden');
-                
-                if (data && data.saklar) {
-                    container.innerHTML = '';
-                    const recentLogs = [...data.saklar].reverse().slice(0, 30);
-                    
-                    if (recentLogs.length === 0) {
-                        container.innerHTML = '<p class="text-sm text-center text-gray-500 py-4">Tidak ada log terekam.</p>';
-                        return;
-                    }
-
-                    recentLogs.forEach(log => {
-                        const time = new Date(log.Timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-                        const colorClass = log.Aksi === 'loading' ? 'loading' : log.Aksi === 'sterilization' ? 'sterilization' : log.Aksi === 'unloading' ? 'unloading' : 'idle';
-                        const actionText = log.Aksi === 'loading' ? 'Isi Buah' : log.Aksi === 'sterilization' ? 'Proses Perebusan' : log.Aksi === 'unloading' ? 'Bongkar Buah' : 'Selesai / Standby';
-                        
-                        container.innerHTML += `
-                            <div class="timeline-item ${colorClass}">
-                                <div class="flex justify-between items-baseline">
-                                    <h4 class="text-sm font-bold text-gray-800">${log.NamaAlat}</h4>
-                                    <span class="text-xs text-gray-500 font-medium">${time}</span>
-                                </div>
-                                <p class="text-xs text-gray-600">${actionText}</p>
-                            </div>
-                        `;
-                    });
-                }
-            }
-
-            // --- STREAMING_CHUNK:Smart Dashboard Data Processing... ---
-            const reportLoader = document.getElementById('report-loader');
-            const reportContent = document.getElementById('report-content');
-            const reportError = document.getElementById('report-error');
-
-            async function loadAndRenderReports() {
-                document.getElementById('print-date').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                
-                reportContent.classList.add('hidden');
-                reportError.classList.add('hidden');
-                reportLoader.classList.remove('hidden');
-
-                const data = await getDataFromSheet();
-                reportLoader.classList.add('hidden');
-
-                if (data) {
-                    processReportData(data);
-                    reportContent.classList.remove('hidden');
-                } else {
-                    reportError.classList.remove('hidden');
-                }
-            }
-
-            function processReportData(data) {
-                const { saklar, master, harian } = data;
-                
-                // Ambil Data Setup Harian terbaru hari ini
-                let todayRestan = state.setup.restan;
-                let todayMasuk = state.setup.buahMasuk;
-                const todayStr = new Date().toISOString().split('T')[0];
-                
-                if (harian) {
-                    const todayHarianLogs = harian.filter(h => h.Tanggal && h.Tanggal.startsWith(todayStr));
-                    if (todayHarianLogs.length > 0) {
-                        const latestHarian = todayHarianLogs[todayHarianLogs.length - 1]; // Ambil update terbaru
-                        todayRestan = parseFloat(latestHarian.RestanAwal) || todayRestan;
-                        todayMasuk = parseFloat(latestHarian.BuahMasuk) || todayMasuk;
-                        
-                        // Update UI Form Setup
-                        inputRestan.value = todayRestan;
-                        inputBuahMasuk.value = todayMasuk;
-                        if(latestHarian.R1) {
-                            document.getElementById('setup-r1').value = latestHarian.R1;
-                            document.getElementById('setup-r2').value = latestHarian.R2;
-                            document.getElementById('setup-r3').value = latestHarian.R3;
-                            document.getElementById('setup-r4').value = latestHarian.R4;
-                        }
-                    }
-                }
-                const totalBuahTersedia = todayRestan + todayMasuk;
-                document.getElementById('counter-ketersediaan').textContent = totalBuahTersedia;
-
-                // Hitung Jam Olah dari Master Switch
-                let operatingHours = 0;
-                if (master) {
-                    const todayMaster = master.filter(m => m.Timestamp && m.Timestamp.startsWith(todayStr));
-                    let startT = null;
-                    todayMaster.forEach(m => {
-                        if (m.Aksi === 'start') startT = new Date(m.Timestamp).getTime();
-                        if (m.Aksi === 'stop' && startT) {
-                            operatingHours += (new Date(m.Timestamp).getTime() - startT) / 3600000;
-                            startT = null;
-                        }
-                    });
-                    if (startT && state.master.isOperating) {
-                        operatingHours += (Date.now() - startT) / 3600000;
-                    }
-                }
-                if (operatingHours === 0 && totalBuahTersedia > 0) operatingHours = 1; // Mencegah bagi nol jika uji coba
-
-                // Hitung Siklus Selesai (Unloading)
-                const todayLogs = saklar.filter(log => log.Timestamp && log.Timestamp.startsWith(todayStr));
-                const totalSiklus = todayLogs.filter(log => log.Aksi === 'unloading').length;
-                const totalTonDiolah = totalSiklus * KAPASITAS_REBUSAN;
-                
-                document.getElementById('counter-total-siklus').textContent = totalSiklus;
-
-                // Kalkulasi Pemetaan Buah (WIP & Loading Ramp)
-                // Buah dalam Rebusan (WIP) = Rebusan yang statusnya "Loading" atau "Sterilization"
-                let countWipRebusan = 0;
-                state.switches.forEach(sw => {
-                    if(sw.phase === 'loading' || sw.phase === 'sterilization') {
-                        countWipRebusan++;
-                    }
+                            ${durasi}
+                        </div>
+                    `;
                 });
-                const totalWipTon = countWipRebusan * KAPASITAS_REBUSAN;
-                
-                // Kalkulasi Throughput & Sisa Restan Akhir
-                const throughput = operatingHours > 0 ? (totalTonDiolah / operatingHours).toFixed(2) : 0;
-                
-                // Restan Akhir = (Total Buah) - (Yang sudah dibongkar)
-                const sisaRestanAkhir = totalBuahTersedia - totalTonDiolah;
-                
-                // Sisa murni di Loading Ramp = Restan Akhir - (Yang sedang ada didalam rebusan)
-                let sisaDiRamp = sisaRestanAkhir - totalWipTon;
-                if(sisaDiRamp < 0) sisaDiRamp = 0;
+                if(container.innerHTML === '') container.innerHTML = '<p class="text-center text-sm text-gray-500 py-5">Belum ada riwayat aktivitas rebusan.</p>';
+            }
 
-                const realisasi = totalBuahTersedia > 0 ? ((totalTonDiolah / totalBuahTersedia) * 100).toFixed(1) : 0;
+            function renderActivities(logs) {
+                const container = document.getElementById('activity-list');
+                container.innerHTML = '';
+                container.classList.remove('hidden');
 
-                // Update UI Metrics
-                document.getElementById('metric-throughput').textContent = throughput;
-                document.getElementById('metric-jam-olah').textContent = `${operatingHours.toFixed(1)} Jam`;
-                document.getElementById('metric-total-olah').textContent = `${totalTonDiolah} Ton`;
-                
-                document.getElementById('metric-wip').textContent = totalWipTon;
-                document.getElementById('metric-ramp').textContent = `${sisaDiRamp} Ton`;
-                
-                const elRestan = document.getElementById('metric-restan-akhir');
-                const cardRestan = document.getElementById('card-restan');
-                const warnRestan = document.getElementById('warning-restan');
-                
-                elRestan.textContent = sisaRestanAkhir;
-                document.getElementById('metric-realisasi').textContent = `${realisasi}%`;
-
-                // Logic Warna Peringatan Restan
-                if (sisaRestanAkhir > 0) {
-                    cardRestan.className = "dashboard-card bg-gradient-to-br from-red-500 to-red-700 p-4 rounded-2xl text-white shadow-lg relative overflow-hidden transition-colors duration-500";
-                    warnRestan.classList.remove('hidden');
-                } else {
-                    cardRestan.className = "dashboard-card bg-gradient-to-br from-green-500 to-green-700 p-4 rounded-2xl text-white shadow-lg relative overflow-hidden transition-colors duration-500";
-                    warnRestan.classList.add('hidden');
-                }
-
-                // Render Chart: Distribusi Siklus
-                const actData = state.switches.map(sw => todayLogs.filter(log => log.NamaAlat === sw.name && log.Aksi === 'unloading').length);
-                renderActivationChart(state.switches.map(s => s.name), actData);
-
-                // Render Table Log Aktivitas
-                const tableBody = document.getElementById('report-table-body');
-                tableBody.innerHTML = '';
-                [...todayLogs].reverse().slice(0, 20).forEach(log => {
-                    const time = new Date(log.Timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-                    const badge = log.Aksi === 'unloading' ? 'bg-green-100 text-green-800' : log.Aksi === 'sterilization' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800';
-                    const actName = log.Aksi === 'unloading' ? 'Bongkar' : log.Aksi === 'sterilization' ? 'Rebus' : log.Aksi === 'loading' ? 'Isi' : 'Standby';
-                    tableBody.innerHTML += `
-                        <tr class="border-b border-gray-100 last:border-0">
-                            <td class="px-3 py-2 text-gray-500">${time}</td>
-                            <td class="px-3 py-2 font-bold text-gray-800">${log.NamaAlat}</td>
-                            <td class="px-3 py-2"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${actName}</span></td>
-                        </tr>
+                [...logs].reverse().slice(0, 20).forEach(log => {
+                    if(!log.Tanggal) return;
+                    container.innerHTML += `
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-bold text-purple-800 text-sm">${log.NamaKegiatan}</h4>
+                                <span class="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">${log.Jam}</span>
+                            </div>
+                            <p class="text-xs text-gray-600 mb-2 leading-relaxed">${log.Keterangan}</p>
+                            <p class="text-[10px] font-semibold text-gray-500 border-t pt-2 border-gray-200">
+                                Pelaksana: <span class="text-gray-800">${log.NamaPelaksana || '-'}</span> | Tgl: ${log.Tanggal.split('T')[0]}
+                            </p>
+                        </div>
                     `;
                 });
             }
 
-            function renderActivationChart(labels, data) {
-                const ctx = document.getElementById('activation-count-chart').getContext('2d');
-                if (charts.activationCount) charts.activationCount.destroy();
-                charts.activationCount = new Chart(ctx, {
+            document.getElementById('report-filter').addEventListener('change', () => {
+                if(rawServerData) processReportData();
+            });
+
+            function processReportData() {
+                if(!rawServerData) return;
+                
+                const filter = document.getElementById('report-filter').value;
+                const { saklar, harian, master } = rawServerData;
+                const content = document.getElementById('report-content');
+                content.classList.remove('hidden');
+
+                const todayISO = new Date().toISOString().split('T')[0];
+                
+                // Filter Data Setup Harian
+                let arrSetup = harian;
+                if (filter === 'today') {
+                    arrSetup = harian.filter(h => h.Tanggal && h.Tanggal.startsWith(todayISO));
+                    document.getElementById('print-date-range').textContent = `Periode: ${new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}`;
+                } else {
+                    document.getElementById('print-date-range').textContent = `Periode: Semua Waktu (Akumulasi)`;
+                }
+                
+                let totalRestan = 0, totalMasuk = 0;
+                arrSetup.forEach(h => {
+                    totalRestan += parseFloat(h.RestanAwal || 0);
+                    totalMasuk += parseFloat(h.BuahMasuk || 0);
+                });
+                const totalBuahTersedia = totalRestan + totalMasuk;
+
+                // Filter Master Olah Hours
+                let arrMaster = master;
+                if (filter === 'today') arrMaster = master.filter(m => m.Timestamp && m.Timestamp.startsWith(todayISO));
+                let totalJamOlah = 0;
+                arrMaster.forEach(m => {
+                    if(m.Aksi === 'stop' && m.DurasiJam) totalJamOlah += parseFloat(m.DurasiJam);
+                });
+                
+                // Simulasi Jam Olah Live dari lokal jika hari ini dan mesin masih nyala
+                if(filter === 'today' && state.master.isOperating && state.master.startTime) {
+                     const elapsedLive = (Date.now() - state.master.startTime + state.master.totalMs) / 3600000;
+                     totalJamOlah += elapsedLive;
+                }
+                if(totalJamOlah === 0 && totalBuahTersedia > 0) totalJamOlah = 1; // Div by zero preventer
+
+                // Filter Saklar Rebusan
+                let arrSaklar = saklar;
+                if (filter === 'today') arrSaklar = saklar.filter(s => s.Timestamp && s.Timestamp.startsWith(todayISO));
+
+                let totalTonDiolah = 0;
+                let siklusUnloading = 0;
+                let durasiMap = { 'Rebusan 1': [], 'Rebusan 2': [], 'Rebusan 3': [], 'Rebusan 4': [] };
+
+                arrSaklar.forEach(log => {
+                    if (log.Aksi === 'unloading') {
+                        siklusUnloading++;
+                        totalTonDiolah += parseFloat(log.Tonase || 33);
+                        if (log.DurasiMenit && parseFloat(log.DurasiMenit) > 0 && durasiMap[log.NamaAlat]) {
+                            durasiMap[log.NamaAlat].push(parseFloat(log.DurasiMenit));
+                        }
+                    }
+                });
+
+                // Kalkulasi WIP (Sedang di dalam rebusan)
+                let totalWipTon = 0;
+                let detailWipText = [];
+                if(filter === 'today' || filter === 'all') {
+                    state.switches.forEach(sw => {
+                        if(sw.phase === 'loading' || sw.phase === 'sterilization') { 
+                            let wip = parseFloat(sw.tonase || 33);
+                            totalWipTon += wip; 
+                            detailWipText.push(`${sw.name.replace('Rebusan ','R')}(${wip})`);
+                        }
+                    });
+                }
+
+                // Kalkulasi Metrik Utama
+                const throughput = totalJamOlah > 0 ? (totalTonDiolah / totalJamOlah) : 0;
+                const sisaRamp = totalBuahTersedia - totalTonDiolah - totalWipTon;
+                const estimasiCpo = totalTonDiolah * 0.20; // OER 20%
+
+                // Update UI Card
+                document.getElementById('metric-total-olah').textContent = totalTonDiolah.toFixed(1);
+                document.getElementById('metric-throughput').textContent = throughput.toFixed(2);
+                document.getElementById('metric-est-cpo').textContent = estimasiCpo.toFixed(1);
+                
+                const rampEl = document.getElementById('metric-sisa-ramp');
+                const rampCard = document.getElementById('metric-ramp-card');
+                rampEl.textContent = sisaRamp.toFixed(1);
+                
+                if (sisaRamp > 0) {
+                    rampCard.className = "bg-red-50 p-4 rounded-xl border border-red-200 shadow-sm transition-colors duration-500";
+                    rampEl.className = "text-2xl font-black text-red-700";
+                } else {
+                    rampCard.className = "bg-white p-4 rounded-xl border border-gray-200 shadow-sm transition-colors duration-500";
+                    rampEl.className = "text-2xl font-black text-gray-800";
+                }
+
+                // Render Sele-sele (Oret-oretan)
+                document.getElementById('sele-sele-content').innerHTML = `
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[A] Ketersediaan:</span> Restan (${totalRestan.toFixed(1)}) + Masuk (${totalMasuk.toFixed(1)}) = <strong>${totalBuahTersedia.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[B] Siklus Selesai:</span> ${siklusUnloading} Siklus Bongkar</p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[C] Total Diolah:</span> Akumulasi Muatan = <strong class="text-green-700">${totalTonDiolah.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[D] Jam Operasi:</span> Total Waktu Mesin Aktif = <strong>${totalJamOlah.toFixed(2)} Jam</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[E] Kapasitas:</span> [C] (${totalTonDiolah.toFixed(1)}) ÷ [D] (${totalJamOlah.toFixed(2)}) = <strong class="text-blue-700">${throughput.toFixed(2)} Ton/Jam</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[F] Dalam Alat (WIP):</span> ${detailWipText.length>0 ? detailWipText.join(' + ') : '0'} = <strong>${totalWipTon.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[G] Proyeksi CPO:</span> [C] (${totalTonDiolah.toFixed(1)}) × Asumsi Rendemen 20% = <strong class="text-yellow-700">${estimasiCpo.toFixed(1)} Ton CPO</strong></p>
+                    <p class="pt-1"><span class="font-bold text-gray-600">[H] Sisa di Lantai:</span> [A] - [C] - [F] = <strong class="${sisaRamp > 0 ? 'text-red-600' : 'text-gray-800'}">${sisaRamp.toFixed(1)} Ton</strong></p>
+                `;
+
+                // Render Grafik Efisiensi
+                const avgData = [1, 2, 3, 4].map(i => {
+                    const arr = durasiMap[`Rebusan ${i}`] || [];
+                    if(arr.length === 0) return 0;
+                    const sum = arr.reduce((a, b) => a + b, 0);
+                    return parseFloat((sum / arr.length).toFixed(1));
+                });
+
+                // Warna Grafik: Merah jika rata-rata durasi > 110 menit
+                const barColors = avgData.map(val => (val > 110) ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)');
+                const borderColors = avgData.map(val => (val > 110) ? 'rgb(220, 38, 38)' : 'rgb(22, 163, 74)');
+
+                const ctx = document.getElementById('duration-chart').getContext('2d');
+                if(durationChart) durationChart.destroy();
+                durationChart = new Chart(ctx, {
                     type: 'bar',
-                    data: { labels, datasets: [{ label: 'Total Siklus', data, backgroundColor: '#3b82f6', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                    data: {
+                        labels: ['R1', 'R2', 'R3', 'R4'],
+                        datasets: [{
+                            label: 'Rata-rata Durasi Rebus (Menit)',
+                            data: avgData,
+                            backgroundColor: barColors,
+                            borderColor: borderColors,
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            y: { 
+                                beginAtZero: true,
+                                title: { display: true, text: 'Menit' }
+                            } 
+                        }
+                    }
                 });
             }
 
-            // --- STREAMING_CHUNK:Global Utilities & Init... ---
-            function updateClock() {
-                const now = new Date();
-                const dStr = now.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
-                const tStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':');
-                liveClock.innerHTML = `${dStr}<br><span class="font-bold text-gray-900">${tStr}</span>`;
-            }
+            // Print Action
+            document.getElementById('btn-print').addEventListener('click', () => {
+                window.print();
+            });
+
+            // --- BOOTSTRAP APP ---
+            setTimeout(() => document.getElementById('welcome-screen').classList.add('hidden'), 2500);
             
-            function setDefaultDateTime() {
-                const now = new Date();
-                document.getElementById('activity-date').value = now.toISOString().split('T')[0];
-                document.getElementById('activity-time').value = now.toTimeString().split(' ')[0].substring(0, 5);
-            }
-            
-            function saveLocalState() {
-                localStorage.setItem('pksAppState', JSON.stringify(state));
-            }
-
-            function loadLocalState() {
-                const saved = localStorage.getItem('pksAppState');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    Object.assign(state.master, parsed.master);
-                    Object.assign(state.setup, parsed.setup);
-                    parsed.switches.forEach(psw => {
-                        const sw = state.switches.find(s => s.id === psw.id);
-                        if(sw) { sw.phase = psw.phase; sw.phaseTime = psw.phaseTime; }
-                    });
-                    
-                    // Reset operasi master jika ganti hari (jam 12 malam lewat)
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const lastUpdateStr = state.setup.lastUpdate ? new Date(state.setup.lastUpdate).toISOString().split('T')[0] : null;
-                    if (lastUpdateStr !== todayStr) {
-                        state.master.isOperating = false;
-                        state.master.startTime = null;
-                        state.setup.restan = 0; 
-                        state.setup.buahMasuk = 0;
-                        state.switches.forEach(sw => { sw.phase = 'idle'; sw.phaseTime = null; });
-                    }
-
-                    inputRestan.value = state.setup.restan;
-                    inputBuahMasuk.value = state.setup.buahMasuk;
-                    
-                    // Sinkronkan ke Select UI Setup
-                    document.getElementById('setup-r1').value = state.switches[0].phase;
-                    document.getElementById('setup-r2').value = state.switches[1].phase;
-                    document.getElementById('setup-r3').value = state.switches[2].phase;
-                    document.getElementById('setup-r4').value = state.switches[3].phase;
-                }
-            }
-
-            // Start up sequence
-            setTimeout(() => welcomeScreen.classList.add('hidden'), 2500);
             loadLocalState();
             updateMasterUI();
             updateClock();
-            setInterval(updateClock, 1000);
+            setInterval(updateClock, 1000); // 1 sec tick for clock
+            
+            progressInterval = setInterval(updateProgressBars, 60000); // 1 min tick for progress bars
+            
             setDefaultDateTime();
             renderSwitches();
+            calculateLiveRamp();
+
+            // Fetch background data awal untuk kalkulasi live sisa
+            fetchServerData().then(() => calculateLiveRamp());
         });
     </script>
 </body>
