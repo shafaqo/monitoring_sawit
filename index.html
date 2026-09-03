@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PKS Ketapang Hijau Lestari - Production Dashboard</title>
+    <!-- Tetap menggunakan CDN eksternal untuk styling dan chart karena caching browser -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@3.3.0/build/global/luxon.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -23,10 +22,8 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .app-container { max-width: 600px; margin: 0 auto; background-color: var(--surface); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); min-height: 100vh; position: relative; overflow-x: hidden; }
         
-        /* Dekorasi Background */
         .pattern-bg { background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
         
-        /* Layar Selamat Datang */
         .welcome-screen { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); transition: opacity 0.8s ease, visibility 0.8s ease; z-index: 100; }
         .welcome-screen.hidden { opacity: 0; visibility: hidden; }
         .welcome-screen svg, .welcome-screen h1, .welcome-screen h2, .welcome-screen p { opacity: 0; animation: fadeInUp 0.8s ease-out forwards; }
@@ -34,7 +31,6 @@
         .welcome-screen h2 { animation-delay: 0.5s; } .welcome-screen p { animation-delay: 0.7s; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Navigasi & Tab */
         .nav-item.active { color: var(--primary); }
         .nav-item.active svg { transform: translateY(-2px); transition: transform 0.2s ease; }
         .nav-item.active span { font-weight: 700; }
@@ -42,7 +38,6 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Elemen UI */
         .btn-action { transition: all 0.2s; position: relative; overflow: hidden; }
         .btn-action:active:not(:disabled) { transform: scale(0.96); }
         .btn-action:disabled { cursor: not-allowed; opacity: 0.6; }
@@ -51,21 +46,17 @@
         .loader { border: 3px solid #f1f5f9; border-top: 3px solid var(--primary); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Progress Bar Anim */
         .progress-bar-stripes { background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite; }
         @keyframes progress-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
 
-        /* Toast Notification */
         .toast { position: fixed; top: 20px; right: 20px; z-index: 9999; transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-width: 300px; }
         .toast.show { transform: translateX(0); }
 
-        /* Cetak A4 */
         @media print {
             body { background: white; color: black; }
             .app-container { max-width: 100%; box-shadow: none; margin: 0; }
@@ -78,13 +69,13 @@
             .chart-container { height: 250px !important; page-break-inside: avoid; }
             table { page-break-inside: auto; }
             tr { page-break-inside: avoid; page-break-after: auto; }
-            @page { size: A4 portrait; margin: 1.5cm; }
+            @page { size: A4 portrait; margin: 1cm; }
         }
     </style>
 </head>
 <body class="pattern-bg">
 
-    <div id="toast-container" class="toast flex items-center w-full p-4 space-x-3 bg-white rounded-lg shadow border-l-4" role="alert">
+    <div id="toast-container" class="toast flex items-center w-full p-4 space-x-3 bg-white rounded-lg shadow-xl border-l-4" role="alert">
         <div id="toast-icon" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg"></div>
         <div id="toast-message" class="ml-3 text-sm font-medium text-gray-700">Notifikasi</div>
     </div>
@@ -95,23 +86,43 @@
         </div>
         <h1 class="text-3xl font-black tracking-tight drop-shadow-md">PKS Ketapang<br>Hijau Lestari</h1>
         <div class="h-1 w-16 bg-yellow-400 my-4 rounded-full"></div>
-        <p class="mt-2 text-green-100 font-medium tracking-wide">By Mitra Pelawi</p>
+        <p class="mt-2 text-green-100 font-medium tracking-wide">Offline-First Production System</p>
     </div>
     
     <div class="app-container flex flex-col">
-        <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-5 py-4 border-b border-gray-200 flex items-center justify-between shadow-sm">
-            <div class="flex items-center space-x-3">
-                 <div class="bg-green-700 p-2 rounded-xl shadow-inner">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
+        <header class="bg-white/90 backdrop-blur-md sticky top-0 z-30 px-4 py-3 border-b border-gray-200 flex flex-col shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+                 <div class="flex items-center space-x-3">
+                     <div class="bg-green-700 p-2 rounded-xl shadow-inner">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6m-6-8a1 1 0 01-1-1V5a1 1 0 112 0v7a1 1 0 01-1 1z"></path></svg>
+                    </div>
+                    <div>
+                        <h1 id="header-title" class="text-base font-black text-gray-900 tracking-tight">KONTROL PANEL</h1>
+                        <p class="text-[9px] uppercase font-bold text-green-600 tracking-wider">Dashboard Operasional</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 id="header-title" class="text-lg font-black text-gray-900 tracking-tight">KONTROL PANEL</h1>
-                    <p class="text-[10px] uppercase font-bold text-green-600 tracking-wider">Dashboard Operasional</p>
+                <div class="text-right">
+                     <div id="live-clock-time" class="text-base font-black text-gray-800 font-mono tracking-tighter leading-none">00:00:00</div>
+                     <div id="live-clock-date" class="text-[9px] font-bold text-gray-500 uppercase mt-1">Senin, 1 Jan</div>
                 </div>
             </div>
-            <div class="text-right">
-                 <div id="live-clock-time" class="text-lg font-black text-gray-800 font-mono tracking-tighter leading-none">00:00:00</div>
-                 <div id="live-clock-date" class="text-[10px] font-bold text-gray-500 uppercase mt-1">Senin, 1 Jan</div>
+            <!-- Sync Dashboard Area -->
+            <div class="flex items-center justify-between bg-slate-100 rounded-lg p-2 border border-slate-200">
+                <div class="flex items-center space-x-2">
+                    <div id="online-indicator" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span id="online-text" class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Online</span>
+                </div>
+                <div class="flex space-x-2">
+                    <span id="queue-badge" class="hidden items-center justify-center bg-yellow-100 text-yellow-800 text-[9px] font-bold px-2 py-0.5 rounded border border-yellow-300">0 Pending</span>
+                    <button id="btn-sync-upload" class="text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-2 py-1 rounded transition-colors flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Upload
+                    </button>
+                    <button id="btn-sync-download" class="text-[10px] bg-slate-700 hover:bg-slate-800 text-white font-bold px-2 py-1 rounded transition-colors flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Tarik Data
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -155,8 +166,8 @@
                         <div class="col-span-2 sm:col-span-1">
                             <label class="block text-xs font-bold text-gray-500 mb-1">Shift / Regu</label>
                             <select id="setup-shift" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none transition-all">
-                                <option value="Shift 1">Shift 1</option>
-                                <option value="Shift 2">Shift 2</option>
+                                <option value="Shift 1">Shift 1 (Pagi)</option>
+                                <option value="Shift 2">Shift 2 (Malam)</option>
                             </select>
                         </div>
                     </div>
@@ -177,7 +188,6 @@
                         </div>
                     </div>
 
-                    <!-- Setup Posisi Awal Rebusan -->
                     <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
                         <label class="block text-xs font-bold text-gray-700 mb-2">Posisi Awal Rebusan (Meneruskan Sisa Kemarin)</label>
                         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -206,7 +216,6 @@
                     </button>
                 </div>
 
-                <!-- Live Sisa Ramp -->
                 <div class="bg-gradient-to-r from-amber-100 to-yellow-100 border border-yellow-300 p-4 rounded-2xl flex justify-between items-center shadow-inner relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 text-yellow-300 opacity-30">
                         <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 2v12h12V6H6z"/></svg>
@@ -214,7 +223,7 @@
                     <div class="relative z-10">
                         <p class="text-[10px] font-black text-amber-800 uppercase tracking-widest bg-amber-200/50 inline-block px-2 py-0.5 rounded">Live Update</p>
                         <p class="text-sm font-bold text-amber-900 mt-1">Sisa Buah di Lantai (Ramp)</p>
-                        <p class="text-[9px] text-amber-700 max-w-[200px] leading-tight mt-1">Estimasi sisa fisik buah belum masuk alat.</p>
+                        <p class="text-[9px] text-amber-700 max-w-[200px] leading-tight mt-1">Sisa fisik diluar WIP alat rebusan.</p>
                     </div>
                     <div class="text-right relative z-10">
                         <span id="live-sisa-ramp" class="text-3xl font-black text-amber-600 font-mono drop-shadow-sm">0.0</span>
@@ -222,7 +231,6 @@
                     </div>
                 </div>
 
-                <!-- Kontainer Kartu Saklar Rebusan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="kontrol-container">
                     <!-- Digenerate oleh JS -->
                 </div>
@@ -231,17 +239,10 @@
             <div id="tab-histori" class="tab-content">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold text-gray-800">Histori Rebusan</h2>
-                    <button class="btn-refresh-data text-blue-600 p-2 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors" title="Muat Ulang Data">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    </button>
                 </div>
                 
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 min-h-[50vh]">
-                    <div id="history-loading" class="loader-container">
-                        <div class="loader"></div>
-                        <p class="mt-3 text-sm text-gray-500 font-medium">Menarik data histori...</p>
-                    </div>
-                    <div id="history-content" class="hidden">
+                    <div id="history-content">
                         <div class="flex space-x-2 mb-4 border-b border-gray-100 pb-4 overflow-x-auto scrollbar-hide">
                             <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full whitespace-nowrap">ISI (Loading)</span>
                             <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full whitespace-nowrap">REBUS (Sterilization)</span>
@@ -291,7 +292,7 @@
                         </div>
                         <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                            Simpan Ke Log Server
+                            Simpan Ke Database
                         </button>
                     </form>
                 </div>
@@ -299,10 +300,8 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
                     <div class="flex justify-between items-center border-b pb-2 mb-3">
                          <h2 class="text-sm font-bold text-gray-800">Histori Kegiatan Terbaru</h2>
-                         <button class="btn-refresh-data text-purple-600 hover:text-purple-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></button>
                     </div>
-                    <div id="activity-loading" class="loader-container py-4"><div class="loader !border-t-purple-600"></div></div>
-                    <div id="activity-list" class="space-y-4 max-h-[40vh] overflow-y-auto hidden pr-2">
+                    <div id="activity-list" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
                         <!-- Diisi JS -->
                     </div>
                 </div>
@@ -313,7 +312,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-3 sm:space-y-0 btn-print-hide">
                     <div>
                         <h2 class="text-xl font-black text-gray-800">Dashboard Analitik</h2>
-                        <p class="text-xs text-gray-500">Evaluasi Performa & Efisiensi</p>
+                        <p class="text-xs text-gray-500">Evaluasi Performa & Efisiensi Pabrik</p>
                     </div>
                     <div class="flex space-x-2 w-full sm:w-auto">
                         <select id="report-filter" class="flex-1 sm:flex-none bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none shadow-sm">
@@ -327,54 +326,56 @@
                     </div>
                 </div>
 
-                <div id="report-loader" class="loader-container bg-white rounded-2xl shadow-sm border border-gray-200 h-[50vh] btn-print-hide">
-                    <div class="loader"></div>
-                    <p class="mt-4 text-gray-500 font-medium text-sm animate-pulse">Menghitung matriks efisiensi...</p>
-                </div>
-
-                <div id="report-content" class="space-y-5 hidden print:block">
+                <div id="report-content" class="space-y-5 print:block">
                     
-                    <!-- Header Khusus Cetak -->
                     <div class="hidden print:block text-center mb-6 pb-4 border-b-2 border-gray-800">
                         <h1 class="text-2xl font-black uppercase">Laporan Produksi PKS</h1>
                         <h2 class="text-lg font-bold">PT Ketapang Hijau Lestari</h2>
                         <p class="text-sm" id="print-date-range">Periode: -</p>
                     </div>
 
-                    <!-- Metrik Utama Grid -->
+                    <!-- Target Harian (Progress Bar) -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <div class="flex justify-between items-end mb-2">
+                            <div>
+                                <h3 class="text-xs font-bold text-gray-500 uppercase">Pencapaian Target Harian</h3>
+                                <p class="text-lg font-black text-gray-800"><span id="target-achieved">0</span> <span class="text-sm text-gray-500 font-medium">/ 500 Ton</span></p>
+                            </div>
+                            <div class="text-right">
+                                <span id="target-percent" class="text-xl font-black text-primary">0%</span>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div id="target-bar" class="bg-primary h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 print:grid-cols-4">
-                        <!-- Card: Total Olah -->
                         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-12 h-12 bg-green-50 rounded-bl-full -z-0"></div>
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative">Total Buah Diolah</h3>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative">Total Ketersediaan</h3>
                             <div class="mt-2 flex items-baseline z-10 relative">
-                                <span id="metric-total-olah" class="text-2xl font-black text-green-700">0</span>
+                                <span id="metric-total-tersedia" class="text-2xl font-black text-green-700">0</span>
                                 <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
                             </div>
                         </div>
                         
-                        <!-- Card: Throughput -->
                         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">
-                                Kapasitas (Throughput)
-                                <svg class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            </h3>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">Kapasitas (Throughput)</h3>
                             <div class="mt-2 flex items-baseline">
                                 <span id="metric-throughput" class="text-2xl font-black text-blue-700">0.0</span>
                                 <span class="ml-1 text-xs font-bold text-gray-500">Ton/Jam</span>
                             </div>
                         </div>
 
-                        <!-- Card: Sisa Ramp -->
                         <div id="metric-ramp-card" class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm transition-colors duration-500">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase">Sisa Fisik (Ramp)</h3>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase">Estimasi Sisa (Ramp)</h3>
                             <div class="mt-2 flex items-baseline">
                                 <span id="metric-sisa-ramp" class="text-2xl font-black text-gray-800">0</span>
                                 <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
                             </div>
                         </div>
                         
-                        <!-- Card: Estimasi CPO -->
                         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
                              <div class="absolute top-0 right-0 w-12 h-12 bg-yellow-50 rounded-bl-full -z-0"></div>
                             <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative" title="Asumsi Oil Extraction Rate 20%">Est. CPO (OER 20%)</h3>
@@ -385,11 +386,11 @@
                         </div>
                     </div>
 
-                    <!-- Sele-sele / Oret-oretan Perhitungan -->
+                    <!-- Oret-oretan Perhitungan Khusus -->
                     <div class="bg-yellow-50/80 p-4 rounded-xl border border-yellow-200 shadow-inner font-mono text-[11px] text-gray-800 print:bg-white print:border-gray-400">
                         <h3 class="font-sans font-bold text-gray-800 mb-2 border-b border-yellow-300 pb-2 flex items-center print:border-gray-400">
                             <svg class="w-4 h-4 mr-1 text-yellow-600 print:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                            Oret-oretan Perhitungan (Catatan Pelaporan)
+                            Oret-oretan Analisa Kinerja & Kapasitas
                         </h3>
                         <div id="sele-sele-content" class="space-y-1.5 ml-1 leading-relaxed">
                             <!-- Diisi JS -->
@@ -401,7 +402,7 @@
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                             <h3 class="font-bold text-sm text-gray-800 mb-4 text-center">Analisa Rata-rata Lama Rebusan (Menit)</h3>
                             <div class="chart-container"><canvas id="duration-chart"></canvas></div>
-                            <p class="text-[10px] text-center text-gray-500 mt-2 italic">*Target Standard Operasional: ~90 Menit</p>
+                            <p class="text-[10px] text-center text-gray-500 mt-2 italic">*Target Standard Operasional: ~90 Menit. Bar merah menandakan efisiensi rendah.</p>
                         </div>
                     </div>
                     
@@ -409,28 +410,28 @@
             </div>
 
             <div id="tab-panduan" class="tab-content">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Panduan SOP Aplikasi</h2>
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Panduan Offline-First</h2>
                 <div class="space-y-4 text-sm text-gray-700">
+                     <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-blue-500">
+                        <h3 class="font-bold text-base text-gray-900 mb-1">Cara Kerja Mode Offline</h3>
+                        <p class="mb-2">Aplikasi ini dirancang untuk dapat bekerja walau tanpa internet.</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Setiap Anda menekan tombol operasional, data disimpan di memori HP/Komputer Anda.</li>
+                            <li>Tanda "Pending" berwarna kuning di atas menunjukkan ada data yang belum terkirim ke server (Spreadsheet).</li>
+                            <li>Saat Anda mendapat sinyal internet, klik tombol <strong>"Upload"</strong> untuk mengirim semua data pending sekaligus.</li>
+                            <li>Klik tombol <strong>"Tarik Data"</strong> untuk mengunduh laporan dari hari-hari sebelumnya dari server ke HP Anda.</li>
+                        </ul>
+                    </div>
                      <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-gray-800">
-                        <h3 class="font-bold text-base text-gray-900 mb-1">1. Alur Mulai Shift (Penting)</h3>
+                        <h3 class="font-bold text-base text-gray-900 mb-1">Alur Mulai Shift</h3>
                         <ol class="list-decimal pl-5 space-y-1 mt-2">
                             <li>Buka tab <strong>Kontrol Panel</strong>.</li>
                             <li>Tentukan <strong>Shift</strong> yang bertugas.</li>
-                            <li>Isi <strong>Restan</strong> (sisa real kemarin) dan <strong>Buah Masuk</strong> hari ini.</li>
-                            <li>Atur posisi awal R1-R4 (Meneruskan proses shift sebelumnya).</li>
+                            <li>Isi <strong>Restan</strong> (sisa kemarin) dan <strong>Buah Masuk</strong> hari ini.</li>
+                            <li>Atur posisi awal R1-R4.</li>
                             <li>Klik <strong>Simpan Setup</strong>.</li>
-                            <li>Tekan <strong>Mulai Proses Pabrik</strong> (Master Switch) untuk mulai menghitung Jam Olah.</li>
+                            <li>Tekan <strong>Mulai Proses Pabrik</strong> untuk mulai menghitung Jam Olah.</li>
                         </ol>
-                    </div>
-                    <div class="p-4 bg-white rounded-xl shadow-sm border-l-4 border-primary">
-                        <h3 class="font-bold text-base text-primary mb-1">2. Alur Siklus Rebusan</h3>
-                        <p class="mb-2">Tombol diatur berurutan dan akan terkunci jika fasenya tidak tepat.</p>
-                        <ul class="list-disc pl-5 space-y-1">
-                            <li><strong>ISI:</strong> Masukkan jumlah tonase aktual (bisa diedit misal 32.5), lalu klik ISI.</li>
-                            <li><strong>REBUS:</strong> Klik saat uap/steam dimasukkan. Sistem mulai menghitung waktu rebus.</li>
-                            <li><strong>BONGKAR:</strong> Klik saat pintu dibuka. (Sistem mencatat 1 siklus selesai).</li>
-                            <li><strong>SELESAI:</strong> Alat kembali kosong.</li>
-                        </ul>
                     </div>
                 </div>
             </div>
@@ -464,11 +465,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- PENGATURAN URL BACKEND ---
-            // PASTE URL DEPLOYMENT APPS SCRIPT ANDA DI SINI
-            const APPSCRIPT_URL = "https://script.google.com/macros/s/AKfycbykyL36qAYluEcUpTeN0zq2Vr9P6SnAv32iVem00ev9TRgif19OBiEM2ESEI8wIITW8/exec";
+            const APPSCRIPT_URL = "GANTI_DENGAN_URL_APPSCRIPT_ANDA";
 
-            // State Data Aplikasi Lokal
-            const state = {
+            // --- STRUKTUR DATA LOKAL & QUEUE SINKRONISASI ---
+            let syncQueue = JSON.parse(localStorage.getItem('pksSyncQueue')) || [];
+            
+            // Database lokal historis (didownload dari server atau ditambah lokal)
+            let localDB = JSON.parse(localStorage.getItem('pksLocalDB')) || {
+                saklar: [], aktivitas: [], master: [], harian: []
+            };
+
+            // State operasional mesin saat ini
+            const state = JSON.parse(localStorage.getItem('pksCurrentState')) || {
                 master: { isOperating: false, startTime: null, totalMs: 0 },
                 setup: { shift: 'Shift 1', restan: 0, buahMasuk: 0 },
                 switches: [
@@ -487,126 +495,191 @@
             };
 
             let durationChart = null;
-            let rawServerData = null; // Cache data dari server
             let progressInterval = null;
 
-            // --- FUNGSI UTILITAS (Toast, Clock, LocalStorage) ---
+            // --- FUNGSI UTILITAS NATIVE JS ---
+            function formatDateNative(isoString) {
+                if(!isoString) return "-";
+                const d = new Date(isoString);
+                if(isNaN(d.getTime())) return isoString;
+                const pad = (n) => n.toString().padStart(2, '0');
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+
+            function isTodayNative(isoString) {
+                if(!isoString) return false;
+                const d = new Date(isoString);
+                const today = new Date();
+                return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+            }
+
+            function getTodayDateStr() {
+                const now = new Date();
+                const pad = (n) => n.toString().padStart(2, '0');
+                return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+            }
+
             function showToast(message, type = 'success') {
                 const toast = document.getElementById('toast-container');
                 const iconContainer = document.getElementById('toast-icon');
                 const msgEl = document.getElementById('toast-message');
-                
                 msgEl.textContent = message;
-                toast.className = 'toast flex items-center w-full p-4 space-x-3 rounded-lg shadow-lg border-l-4';
-                
+                toast.className = 'toast flex items-center w-full p-4 space-x-3 rounded-lg shadow-xl border-l-4';
                 if (type === 'success') {
                     toast.classList.add('bg-white', 'border-green-500');
                     iconContainer.innerHTML = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
                     iconContainer.className = 'inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-green-100';
-                } else if (type === 'error' || type === 'warning') {
+                } else {
                     toast.classList.add('bg-white', 'border-red-500');
                     iconContainer.innerHTML = `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
                     iconContainer.className = 'inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-red-100';
                 }
-                
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 3500);
             }
 
-            function updateClock() {
-                const now = new Date();
-                document.getElementById('live-clock-time').textContent = now.toLocaleTimeString('id-ID', { hour12: false });
-                document.getElementById('live-clock-date').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' });
+            // --- MANAJEMEN STATUS & SINKRONISASI (OFFLINE FIRST) ---
+            function saveStateToLocal() {
+                localStorage.setItem('pksCurrentState', JSON.stringify(state));
+                localStorage.setItem('pksSyncQueue', JSON.stringify(syncQueue));
+                localStorage.setItem('pksLocalDB', JSON.stringify(localDB));
+                updateSyncUI();
+            }
+
+            function queueDataForSync(payload) {
+                payload.timestamp = new Date().toISOString(); // Waktu pasti saat event terjadi (walau offline)
                 
-                if (state.master.isOperating && state.master.startTime) {
-                    const elapsed = Date.now() - state.master.startTime + state.master.totalMs;
-                    const hrs = Math.floor(elapsed / 3600000);
-                    const mins = Math.floor((elapsed % 3600000) / 60000);
-                    document.getElementById('master-duration-text').textContent = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+                // Tambah ke queue
+                syncQueue.push(payload);
+                
+                // Injeksi juga ke localDB agar laporan langsung update tanpa menunggu server
+                if (payload.type === 'switch_log') {
+                    localDB.saklar.push({ Timestamp: payload.timestamp, NamaAlat: payload.switchName, Aksi: payload.action, Tonase: payload.tonase, DurasiMenit: payload.durasiMenit });
+                } else if (payload.type === 'activity_log') {
+                    localDB.aktivitas.push({ Timestamp: payload.timestamp, Tanggal: payload.date, Jam: payload.time, NamaPelaksana: payload.pic, NamaKegiatan: payload.name, Keterangan: payload.description });
+                } else if (payload.type === 'master_log') {
+                    localDB.master.push({ Timestamp: payload.timestamp, Aksi: payload.action, DurasiJam: payload.durasiJam });
+                } else if (payload.type === 'setup_log') {
+                    localDB.harian.push({ Timestamp: payload.timestamp, Tanggal: payload.timestamp.split('T')[0], Shift: payload.shift, RestanAwal: payload.restan, BuahMasuk: payload.buahMasuk, R1: payload.r1, R2: payload.r2, R3: payload.r3, R4: payload.r4 });
                 }
-            }
-            
-            function setDefaultDateTime() {
-                const now = new Date();
-                const dInput = document.getElementById('activity-date');
-                const tInput = document.getElementById('activity-time');
-                if(dInput) dInput.value = now.toISOString().split('T')[0];
-                if(tInput) tInput.value = now.toTimeString().split(' ')[0].substring(0, 5);
+
+                saveStateToLocal();
+                
+                // Refresh tampilan histori/laporan jika sedang dibuka
+                renderHistory();
+                renderActivities();
+                processReportData();
             }
 
-            function saveLocalState() {
-                localStorage.setItem('pksAppStateFinal', JSON.stringify(state));
-            }
-
-            function loadLocalState() {
-                const saved = localStorage.getItem('pksAppStateFinal');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    Object.assign(state.master, parsed.master);
-                    Object.assign(state.setup, parsed.setup);
-                    parsed.switches.forEach(psw => {
-                        const sw = state.switches.find(s => s.id === psw.id);
-                        if(sw) { 
-                            sw.phase = psw.phase; 
-                            sw.phaseTime = psw.phaseTime; 
-                            sw.tonase = psw.tonase || 33;
-                        }
-                    });
-                    
-                    // Repopulate setup form
-                    document.getElementById('setup-shift').value = state.setup.shift;
-                    document.getElementById('setup-restan').value = state.setup.restan;
-                    document.getElementById('setup-masuk').value = state.setup.buahMasuk;
-                    for(let i=1; i<=4; i++) {
-                        const el = document.getElementById(`setup-r${i}`);
-                        const sw = state.switches.find(s => s.id === i);
-                        if(el && sw) el.value = sw.phase;
-                    }
+            function updateSyncUI() {
+                const badge = document.getElementById('queue-badge');
+                if (syncQueue.length > 0) {
+                    badge.textContent = `${syncQueue.length} Pending`;
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
                 }
             }
 
-            // --- FUNGSI JARINGAN / API ---
-            async function sendDataToSheet(payload) {
-                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) {
-                    showToast("Error: URL Apps Script belum diisi di kode HTML!", "error");
-                    return false;
+            function updateNetworkStatus() {
+                const indicator = document.getElementById('online-indicator');
+                const text = document.getElementById('online-text');
+                if (navigator.onLine) {
+                    indicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
+                    text.textContent = 'Online';
+                    text.className = 'text-[10px] font-bold text-green-600 uppercase tracking-widest';
+                } else {
+                    indicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                    text.textContent = 'Offline';
+                    text.className = 'text-[10px] font-bold text-red-600 uppercase tracking-widest';
                 }
+            }
+
+            window.addEventListener('online', updateNetworkStatus);
+            window.addEventListener('offline', updateNetworkStatus);
+
+            // Fetch & Push Data (Server Comm)
+            async function uploadQueueToCloud() {
+                if (!navigator.onLine) return showToast("Tidak ada koneksi internet. Bekerja dalam mode offline.", "warning");
+                if (syncQueue.length === 0) return showToast("Semua data sudah tersinkron", "success");
+                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) return showToast("URL Apps Script belum diisi!", "error");
+
+                const btn = document.getElementById('btn-sync-upload');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="animate-pulse">Mengirim...</span>';
+                btn.disabled = true;
+
                 try {
                     const response = await fetch(APPSCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify(payload),
+                        body: JSON.stringify(syncQueue),
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     });
                     const result = await response.json();
+                    
                     if(result.status === 'success') {
-                        // showToast(result.message, "success"); // Bisa diaktifkan jika ingin notif setiap klik sukses
-                        return true;
+                        syncQueue = []; // Kosongkan antrean
+                        saveStateToLocal();
+                        showToast(`Berhasil upload data ke Cloud.`, "success");
                     } else {
-                        showToast(result.message, "error");
-                        return false;
+                        showToast("Gagal upload: " + result.message, "error");
                     }
                 } catch (error) {
-                    showToast("Gagal terhubung ke Server Sheet.", "error");
-                    return false;
+                    showToast("Gagal terhubung ke Server Cloud.", "error");
                 }
+                
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
             }
 
-            async function fetchServerData() {
-                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) return null;
+            async function downloadCloudData() {
+                if (!navigator.onLine) return showToast("Tidak ada koneksi internet.", "warning");
+                if (!APPSCRIPT_URL || APPSCRIPT_URL.includes("GANTI_DENGAN")) return showToast("URL Apps Script belum diisi!", "error");
+
+                const btn = document.getElementById('btn-sync-download');
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="animate-pulse">Menarik...</span>';
+                btn.disabled = true;
+
                 try {
                     const response = await fetch(APPSCRIPT_URL);
                     const result = await response.json();
                     if(result.status === 'success') {
-                        rawServerData = result.data;
-                        return result.data;
+                        // Timpa database lokal dengan data dari server yang lebih lengkap (Master)
+                        localDB = result.data;
+                        saveStateToLocal();
+                        showToast("Data terbaru berhasil ditarik dari Cloud.", "success");
+                        renderHistory();
+                        renderActivities();
+                        processReportData();
+                        calculateLiveRamp();
                     }
                 } catch (error) {
-                    showToast("Gagal mengambil data laporan.", "error");
+                    showToast("Gagal menarik data dari Cloud.", "error");
                 }
-                return null;
+
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
             }
 
+            document.getElementById('btn-sync-upload').addEventListener('click', uploadQueueToCloud);
+            document.getElementById('btn-sync-download').addEventListener('click', downloadCloudData);
+
             // --- LOGIKA UI KONTROL PANEL ---
+            function restoreSetupUI() {
+                document.getElementById('setup-shift').value = state.setup.shift;
+                document.getElementById('setup-restan').value = state.setup.restan;
+                document.getElementById('setup-masuk').value = state.setup.buahMasuk;
+                for(let i=1; i<=4; i++) {
+                    const el = document.getElementById(`setup-r${i}`);
+                    const sw = state.switches.find(s => s.id === i);
+                    if(el && sw) el.value = sw.phase;
+                }
+            }
+
             function updateMasterUI() {
                 const btn = document.getElementById('btn-master-toggle');
                 const ind = document.getElementById('master-indicator');
@@ -632,21 +705,22 @@
                 if (!state.master.isOperating) {
                     state.master.isOperating = true;
                     state.master.startTime = Date.now();
-                    sendDataToSheet({ type: 'master_log', action: 'start' });
+                    queueDataForSync({ type: 'master_log', action: 'start' });
                     showToast("Pabrik mulai beroperasi", "success");
                 } else {
                     const elapsed = Date.now() - state.master.startTime;
                     state.master.totalMs += elapsed;
                     state.master.isOperating = false;
                     const durationJam = (state.master.totalMs / 3600000).toFixed(2);
-                    sendDataToSheet({ type: 'master_log', action: 'stop', durasiJam: parseFloat(durationJam) });
+                    queueDataForSync({ type: 'master_log', action: 'stop', durasiJam: parseFloat(durationJam) });
                     state.master.startTime = null;
-                    state.master.totalMs = 0; // Reset utk hari berikutnya
+                    state.master.totalMs = 0;
                     document.getElementById('master-duration-text').textContent = "00:00";
                     showToast("Operasional pabrik diakhiri", "success");
                 }
                 updateMasterUI();
-                saveLocalState();
+                saveStateToLocal();
+                processReportData();
             });
 
             document.getElementById('btn-save-setup').addEventListener('click', () => {
@@ -659,28 +733,27 @@
                 const sR3 = document.getElementById('setup-r3').value;
                 const sR4 = document.getElementById('setup-r4').value;
 
-                // Sync status dengan dropdown
                 state.switches[0].phase = sR1; state.switches[1].phase = sR2;
                 state.switches[2].phase = sR3; state.switches[3].phase = sR4;
 
-                sendDataToSheet({ 
+                queueDataForSync({ 
                     type: 'setup_log', 
                     shift: state.setup.shift, restan: state.setup.restan, buahMasuk: state.setup.buahMasuk,
                     r1: sR1, r2: sR2, r3: sR3, r4: sR4
                 });
 
-                showToast("Setup Harian Tersimpan", "success");
-                saveLocalState();
+                showToast("Setup Harian Tersimpan Lokal", "success");
+                saveStateToLocal();
                 renderSwitches(); 
                 calculateLiveRamp();
+                processReportData();
             });
 
-            // UI Progress Bar Rebusan
             function updateProgressBars() {
                 state.switches.forEach(sw => {
                     if (sw.phase === 'sterilization' && sw.phaseTime) {
                         const elapsedMins = (Date.now() - sw.phaseTime) / 60000;
-                        const targetMins = 90; // Asumsi standar 90 menit
+                        const targetMins = 90;
                         let percent = (elapsedMins / targetMins) * 100;
                         if(percent > 100) percent = 100;
                         
@@ -692,7 +765,7 @@
                             barEl.style.width = `${percent}%`;
                             timeEl.textContent = `${Math.floor(elapsedMins)}m`;
                             if (elapsedMins > 100) {
-                                barEl.className = "h-full rounded-full bg-red-500 progress-bar-stripes"; // Alert over-time
+                                barEl.className = "h-full rounded-full bg-red-500 progress-bar-stripes"; 
                                 textEl.textContent = "OVERTIME!";
                                 textEl.className = "text-[9px] font-bold text-red-600";
                             } else {
@@ -751,7 +824,6 @@
                     container.appendChild(card);
                 });
 
-                // Attach Events
                 document.querySelectorAll('.btn-action').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const id = parseInt(e.target.dataset.id);
@@ -762,16 +834,15 @@
                         if(newPhase === 'loading') {
                             sw.tonase = parseFloat(document.getElementById(`input-tonase-${id}`).value) || 33;
                         } else if (newPhase === 'unloading') {
-                            // Menghitung lama waktu rebusan
                             if(sw.phase === 'sterilization' && sw.phaseTime) {
                                 durasiMenit = ((Date.now() - sw.phaseTime) / 60000).toFixed(2);
                             }
                         }
 
                         sw.phase = newPhase;
-                        sw.phaseTime = Date.now(); // Record the exact time phase changed
+                        sw.phaseTime = Date.now(); 
                         
-                        sendDataToSheet({ 
+                        queueDataForSync({ 
                             type: 'switch_log', 
                             switchName: sw.name, 
                             action: newPhase, 
@@ -779,14 +850,14 @@
                             durasiMenit: parseFloat(durasiMenit) || 0
                         });
                         
-                        // Sync visual dropdown setup
                         const setupSelect = document.getElementById(`setup-r${id}`);
                         if(setupSelect) setupSelect.value = newPhase;
                         
-                        saveLocalState();
+                        saveStateToLocal();
                         renderSwitches();
                         calculateLiveRamp();
-                        updateProgressBars(); // Immediate update
+                        updateProgressBars(); 
+                        processReportData();
                     });
                 });
             }
@@ -801,13 +872,10 @@
                     }
                 });
                 
-                // Secara kasar kurangi yang sudah dibongkar di sesi browser ini 
-                // Untuk lebih valid harusnya baca dr server. Kita sediakan estimasi cepat.
                 let totalSelesaiLokal = 0;
-                if(rawServerData && rawServerData.saklar) {
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    rawServerData.saklar.forEach(log => {
-                        if(log.Aksi === 'unloading' && log.Timestamp && log.Timestamp.startsWith(todayStr)) {
+                if(localDB.saklar) {
+                    localDB.saklar.forEach(log => {
+                        if(log.Aksi === 'unloading' && isTodayNative(log.Timestamp)) {
                             totalSelesaiLokal += parseFloat(log.Tonase || 33);
                         }
                     });
@@ -818,91 +886,51 @@
                 document.getElementById('live-sisa-ramp').textContent = sisaLive.toFixed(1);
             }
 
-            // --- FUNGSI TAB & LAPORAN ---
+            // --- TAB & FORM KEGIATAN ---
             const tabButtons = document.querySelectorAll('.nav-item');
             const tabContents = document.querySelectorAll('.tab-content');
             
             tabButtons.forEach(btn => {
-                btn.addEventListener('click', async () => {
+                btn.addEventListener('click', () => {
                     const target = btn.dataset.tab;
-                    
                     tabButtons.forEach(b => b.classList.remove('active', 'bg-gray-50'));
                     btn.classList.add('active', 'bg-gray-50');
-                    
                     tabContents.forEach(c => c.classList.remove('active'));
                     document.getElementById(`tab-${target}`).classList.add('active');
 
-                    // Header title logic
                     const titles = { kontrol: 'KONTROL PANEL', histori: 'LOG REBUSAN', kegiatan: 'LOG KEGIATAN', laporan: 'DASHBOARD ANALITIK', panduan: 'PANDUAN SISTEM' };
                     document.getElementById('header-title').textContent = titles[target];
 
-                    // Data fetching logic
-                    if (target === 'histori' || target === 'kegiatan' || target === 'laporan') {
-                        if (target === 'laporan') document.getElementById('report-content').classList.add('hidden');
-                        document.getElementById(`${target === 'laporan' ? 'report-loader' : target + '-loading'}`).classList.remove('hidden');
-                        
-                        const data = await fetchServerData();
-                        
-                        document.getElementById(`${target === 'laporan' ? 'report-loader' : target + '-loading'}`).classList.add('hidden');
-                        
-                        if(data) {
-                            if(target === 'histori') renderHistory(data.saklar);
-                            if(target === 'kegiatan') renderActivities(data.aktivitas);
-                            if(target === 'laporan') processReportData();
-                        }
-                    }
+                    if (target === 'histori') renderHistory();
+                    if (target === 'kegiatan') renderActivities();
+                    if (target === 'laporan') processReportData();
                 });
             });
 
-            // Event Listeners for explicit refresh buttons
-            document.querySelectorAll('.btn-refresh-data').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const tab = e.target.closest('.tab-content').id.replace('tab-', '');
-                    btn.classList.add('animate-spin');
-                    const data = await fetchServerData();
-                    btn.classList.remove('animate-spin');
-                    if(data) {
-                        if(tab === 'histori') renderHistory(data.saklar);
-                        if(tab === 'kegiatan') renderActivities(data.aktivitas);
-                        showToast("Data diperbarui", "success");
-                    }
-                });
-            });
-
-            // Kegiatan Form Submit
-            document.getElementById('activity-form').addEventListener('submit', async (e) => {
+            document.getElementById('activity-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const form = e.target;
                 const formData = new FormData(form);
                 const payload = { type: 'activity_log', ...Object.fromEntries(formData.entries()) };
                 
-                const btn = form.querySelector('button[type="submit"]');
-                const origText = btn.innerHTML;
-                btn.innerHTML = '<div class="loader !w-5 !h-5 !border-2"></div> Menyimpan...';
-                
-                const success = await sendDataToSheet(payload);
-                btn.innerHTML = origText;
-                
-                if (success) {
-                    showToast("Laporan kegiatan berhasil disimpan", "success");
-                    form.reset();
-                    setDefaultDateTime();
-                }
+                queueDataForSync(payload);
+                showToast("Laporan kegiatan disimpan secara lokal", "success");
+                form.reset();
+                document.getElementById('activity-date').value = getTodayDateStr();
+                document.getElementById('activity-time').value = new Date().toTimeString().split(' ')[0].substring(0, 5);
+                renderActivities();
             });
 
-            // --- RENDER UI DATA ---
-            function renderHistory(logs) {
+            // --- RENDER DATA LOKAL ---
+            function renderHistory() {
+                const logs = localDB.saklar || [];
                 const container = document.getElementById('history-list');
-                const wrapper = document.getElementById('history-content');
                 container.innerHTML = '';
-                wrapper.classList.remove('hidden');
-
                 const colors = { 'loading': 'text-yellow-600 bg-yellow-50 border-yellow-200', 'sterilization': 'text-red-600 bg-red-50 border-red-200', 'unloading': 'text-green-600 bg-green-50 border-green-200' };
                 const labels = { 'loading': 'Isi Buah', 'sterilization': 'Mulai Rebus', 'unloading': 'Bongkar' };
 
                 [...logs].reverse().slice(0, 50).forEach(log => {
-                    if(!log.Timestamp || log.Aksi === 'idle' || log.Aksi === 'close' || log.Aksi === 'open') return; // Filter old structure
-                    const dt = luxon.DateTime.fromISO(new Date(log.Timestamp).toISOString());
+                    if(!log.Timestamp || log.Aksi === 'idle' || log.Aksi === 'close' || log.Aksi === 'open') return; 
                     const c = colors[log.Aksi] || 'text-gray-600 bg-gray-50';
                     const durasi = log.DurasiMenit ? `<span class="ml-auto text-[10px] font-bold text-gray-500 bg-white px-2 py-0.5 rounded border">Durasi: ${parseFloat(log.DurasiMenit).toFixed(0)}m</span>` : '';
                     
@@ -913,7 +941,7 @@
                                     <h4 class="font-bold text-sm mr-2">${log.NamaAlat}</h4>
                                     <span class="text-[9px] uppercase font-black px-1.5 py-0.5 rounded bg-white shadow-sm border border-black/5">${labels[log.Aksi] || log.Aksi}</span>
                                 </div>
-                                <p class="text-xs opacity-75 font-medium mt-0.5">${dt.toFormat('dd LLL yyyy, HH:mm')}</p>
+                                <p class="text-xs opacity-75 font-medium mt-0.5">${formatDateNative(log.Timestamp)}</p>
                             </div>
                             ${durasi}
                         </div>
@@ -922,10 +950,10 @@
                 if(container.innerHTML === '') container.innerHTML = '<p class="text-center text-sm text-gray-500 py-5">Belum ada riwayat aktivitas rebusan.</p>';
             }
 
-            function renderActivities(logs) {
+            function renderActivities() {
+                const logs = localDB.aktivitas || [];
                 const container = document.getElementById('activity-list');
                 container.innerHTML = '';
-                container.classList.remove('hidden');
 
                 [...logs].reverse().slice(0, 20).forEach(log => {
                     if(!log.Tanggal) return;
@@ -942,31 +970,31 @@
                         </div>
                     `;
                 });
+                if(container.innerHTML === '') container.innerHTML = '<p class="text-center text-sm text-gray-500 py-5">Belum ada data kegiatan.</p>';
             }
 
-            document.getElementById('report-filter').addEventListener('change', () => {
-                if(rawServerData) processReportData();
-            });
+            // --- REPORTING PINTAR & KALKULATOR (Sesuai Permintaan Spesifik) ---
+            document.getElementById('report-filter').addEventListener('change', processReportData);
 
             function processReportData() {
-                if(!rawServerData) return;
-                
                 const filter = document.getElementById('report-filter').value;
-                const { saklar, harian, master } = rawServerData;
-                const content = document.getElementById('report-content');
-                content.classList.remove('hidden');
+                const { saklar, harian, master } = localDB;
 
-                const todayISO = new Date().toISOString().split('T')[0];
-                
-                // Filter Data Setup Harian
-                let arrSetup = harian;
+                // 1. FILTERING
+                let arrSetup = harian || [];
+                let arrMaster = master || [];
+                let arrSaklar = saklar || [];
+
                 if (filter === 'today') {
-                    arrSetup = harian.filter(h => h.Tanggal && h.Tanggal.startsWith(todayISO));
-                    document.getElementById('print-date-range').textContent = `Periode: ${new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'})}`;
+                    arrSetup = arrSetup.filter(h => isTodayNative(h.Timestamp));
+                    arrMaster = arrMaster.filter(m => isTodayNative(m.Timestamp));
+                    arrSaklar = arrSaklar.filter(s => isTodayNative(s.Timestamp));
+                    document.getElementById('print-date-range').textContent = `Periode: Hari Ini`;
                 } else {
                     document.getElementById('print-date-range').textContent = `Periode: Semua Waktu (Akumulasi)`;
                 }
                 
+                // 2. Ketersediaan Buah
                 let totalRestan = 0, totalMasuk = 0;
                 arrSetup.forEach(h => {
                     totalRestan += parseFloat(h.RestanAwal || 0);
@@ -974,60 +1002,67 @@
                 });
                 const totalBuahTersedia = totalRestan + totalMasuk;
 
-                // Filter Master Olah Hours
-                let arrMaster = master;
-                if (filter === 'today') arrMaster = master.filter(m => m.Timestamp && m.Timestamp.startsWith(todayISO));
+                // 3. Durasi Operasi Master
                 let totalJamOlah = 0;
                 arrMaster.forEach(m => {
                     if(m.Aksi === 'stop' && m.DurasiJam) totalJamOlah += parseFloat(m.DurasiJam);
                 });
-                
-                // Simulasi Jam Olah Live dari lokal jika hari ini dan mesin masih nyala
                 if(filter === 'today' && state.master.isOperating && state.master.startTime) {
                      const elapsedLive = (Date.now() - state.master.startTime + state.master.totalMs) / 3600000;
                      totalJamOlah += elapsedLive;
                 }
-                if(totalJamOlah === 0 && totalBuahTersedia > 0) totalJamOlah = 1; // Div by zero preventer
 
-                // Filter Saklar Rebusan
-                let arrSaklar = saklar;
-                if (filter === 'today') arrSaklar = saklar.filter(s => s.Timestamp && s.Timestamp.startsWith(todayISO));
-
+                // 4. Data Siklus Rebusan
                 let totalTonDiolah = 0;
-                let siklusUnloading = 0;
+                let siklusUnloading = 0; // "Total Rebusan" (Siklus)
                 let durasiMap = { 'Rebusan 1': [], 'Rebusan 2': [], 'Rebusan 3': [], 'Rebusan 4': [] };
+                let akumulasiDurasiMenit = 0;
 
                 arrSaklar.forEach(log => {
                     if (log.Aksi === 'unloading') {
                         siklusUnloading++;
                         totalTonDiolah += parseFloat(log.Tonase || 33);
-                        if (log.DurasiMenit && parseFloat(log.DurasiMenit) > 0 && durasiMap[log.NamaAlat]) {
-                            durasiMap[log.NamaAlat].push(parseFloat(log.DurasiMenit));
+                        if (log.DurasiMenit && parseFloat(log.DurasiMenit) > 0) {
+                            const d = parseFloat(log.DurasiMenit);
+                            durasiMap[log.NamaAlat].push(d);
+                            akumulasiDurasiMenit += d;
                         }
                     }
                 });
+                
+                let akumulasiDurasiJam = akumulasiDurasiMenit / 60;
 
-                // Kalkulasi WIP (Sedang di dalam rebusan)
+                // 5. RUMUS ANALISA KINERJA KUSTOM:
+                // Rumus A: Realisasi Kapasitas Rebusan = (Buah Masuk + Restan) / Total Rebusan
+                let realisasiKapasitasRebusan = 0;
+                if (siklusUnloading > 0) {
+                    realisasiKapasitasRebusan = totalBuahTersedia / siklusUnloading;
+                }
+                
+                // Rumus B: Kapasitas Pabrik = (Realisasi Kapasitas Rebusan * Total Rebusan) / Akumulasi Durasi Lama
+                let kapasitasPabrik = 0; // Throughput
+                if (akumulasiDurasiJam > 0) {
+                    kapasitasPabrik = (realisasiKapasitasRebusan * siklusUnloading) / akumulasiDurasiJam;
+                } else if (totalJamOlah > 0) {
+                    // Fallback jika tidak ada durasi saklar, pakai jam olah master
+                    kapasitasPabrik = (realisasiKapasitasRebusan * siklusUnloading) / totalJamOlah;
+                }
+
+                // 6. WIP & Sisa Ramp
                 let totalWipTon = 0;
-                let detailWipText = [];
-                if(filter === 'today' || filter === 'all') {
+                if(filter === 'today') {
                     state.switches.forEach(sw => {
                         if(sw.phase === 'loading' || sw.phase === 'sterilization') { 
-                            let wip = parseFloat(sw.tonase || 33);
-                            totalWipTon += wip; 
-                            detailWipText.push(`${sw.name.replace('Rebusan ','R')}(${wip})`);
+                            totalWipTon += parseFloat(sw.tonase || 33); 
                         }
                     });
                 }
-
-                // Kalkulasi Metrik Utama
-                const throughput = totalJamOlah > 0 ? (totalTonDiolah / totalJamOlah) : 0;
                 const sisaRamp = totalBuahTersedia - totalTonDiolah - totalWipTon;
-                const estimasiCpo = totalTonDiolah * 0.20; // OER 20%
+                const estimasiCpo = totalTonDiolah * 0.20; 
 
-                // Update UI Card
-                document.getElementById('metric-total-olah').textContent = totalTonDiolah.toFixed(1);
-                document.getElementById('metric-throughput').textContent = throughput.toFixed(2);
+                // 7. Update UI Card
+                document.getElementById('metric-total-tersedia').textContent = totalBuahTersedia.toFixed(1);
+                document.getElementById('metric-throughput').textContent = kapasitasPabrik.toFixed(2);
                 document.getElementById('metric-est-cpo').textContent = estimasiCpo.toFixed(1);
                 
                 const rampEl = document.getElementById('metric-sisa-ramp');
@@ -1042,19 +1077,42 @@
                     rampEl.className = "text-2xl font-black text-gray-800";
                 }
 
-                // Render Sele-sele (Oret-oretan)
+                // 8. Progress Target Harian (500 Ton)
+                const target = 500;
+                let pencapaianPersen = (totalTonDiolah / target) * 100;
+                if(pencapaianPersen > 100) pencapaianPersen = 100;
+                
+                document.getElementById('target-achieved').textContent = totalTonDiolah.toFixed(1);
+                document.getElementById('target-percent').textContent = pencapaianPersen.toFixed(1) + "%";
+                document.getElementById('target-bar').style.width = pencapaianPersen + "%";
+                
+                if(pencapaianPersen < 50) document.getElementById('target-bar').className = "bg-red-500 h-3 rounded-full transition-all duration-1000";
+                else if(pencapaianPersen < 80) document.getElementById('target-bar').className = "bg-yellow-500 h-3 rounded-full transition-all duration-1000";
+                else document.getElementById('target-bar').className = "bg-primary h-3 rounded-full transition-all duration-1000";
+
+
+                // 9. Sele-sele (Rumus Kustom Ditampilkan)
                 document.getElementById('sele-sele-content').innerHTML = `
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[A] Ketersediaan:</span> Restan (${totalRestan.toFixed(1)}) + Masuk (${totalMasuk.toFixed(1)}) = <strong>${totalBuahTersedia.toFixed(1)} Ton</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[B] Siklus Selesai:</span> ${siklusUnloading} Siklus Bongkar</p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[C] Total Diolah:</span> Akumulasi Muatan = <strong class="text-green-700">${totalTonDiolah.toFixed(1)} Ton</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[D] Jam Operasi:</span> Total Waktu Mesin Aktif = <strong>${totalJamOlah.toFixed(2)} Jam</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[E] Kapasitas:</span> [C] (${totalTonDiolah.toFixed(1)}) ÷ [D] (${totalJamOlah.toFixed(2)}) = <strong class="text-blue-700">${throughput.toFixed(2)} Ton/Jam</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[F] Dalam Alat (WIP):</span> ${detailWipText.length>0 ? detailWipText.join(' + ') : '0'} = <strong>${totalWipTon.toFixed(1)} Ton</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[G] Proyeksi CPO:</span> [C] (${totalTonDiolah.toFixed(1)}) × Asumsi Rendemen 20% = <strong class="text-yellow-700">${estimasiCpo.toFixed(1)} Ton CPO</strong></p>
-                    <p class="pt-1"><span class="font-bold text-gray-600">[H] Sisa di Lantai:</span> [A] - [C] - [F] = <strong class="${sisaRamp > 0 ? 'text-red-600' : 'text-gray-800'}">${sisaRamp.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1 text-[10px] text-gray-500">*Sesuai Rumus Permintaan Analisa Spesifik</p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[A] Total Ketersediaan:</span> Restan + Masuk = <strong>${totalBuahTersedia.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[B] Total Siklus:</span> <strong>${siklusUnloading}x Bongkar</strong></p>
+                    
+                    <div class="bg-yellow-100/50 p-2 my-1 border-l-2 border-yellow-500">
+                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Realisasi Kapasitas Rebusan:</span><br> [A] Ketersediaan ÷ [B] Total Siklus</p>
+                        <p>${totalBuahTersedia.toFixed(1)} ÷ ${siklusUnloading || 1} = <strong class="text-blue-700">${realisasiKapasitasRebusan.toFixed(2)} Ton/Siklus</strong></p>
+                    </div>
+
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[C] Akumulasi Durasi (Jam):</span> Total lama proses masak = <strong>${akumulasiDurasiJam.toFixed(2)} Jam</strong></p>
+                    
+                    <div class="bg-yellow-100/50 p-2 my-1 border-l-2 border-yellow-500">
+                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Kapasitas Pabrik (Throughput):</span><br> (Realisasi Kapasitas Rebusan × Total Siklus) ÷ [C] Akumulasi Durasi</p>
+                        <p>(${realisasiKapasitasRebusan.toFixed(2)} × ${siklusUnloading}) ÷ ${akumulasiDurasiJam.toFixed(2) || totalJamOlah.toFixed(2)} = <strong class="text-green-700">${kapasitasPabrik.toFixed(2)} Ton/Jam</strong></p>
+                    </div>
+
+                    <p class="pt-1"><span class="font-bold text-gray-600">Sisa Di Lantai (Ramp):</span> Ketersediaan - Olah Aktual - Dalam Alat = <strong class="${sisaRamp > 0 ? 'text-red-600' : 'text-gray-800'}">${sisaRamp.toFixed(1)} Ton</strong></p>
                 `;
 
-                // Render Grafik Efisiensi
+                // 10. Render Grafik Efisiensi
                 const avgData = [1, 2, 3, 4].map(i => {
                     const arr = durasiMap[`Rebusan ${i}`] || [];
                     if(arr.length === 0) return 0;
@@ -1062,7 +1120,6 @@
                     return parseFloat((sum / arr.length).toFixed(1));
                 });
 
-                // Warna Grafik: Merah jika rata-rata durasi > 110 menit
                 const barColors = avgData.map(val => (val > 110) ? 'rgba(239, 68, 68, 0.7)' : 'rgba(34, 197, 94, 0.7)');
                 const borderColors = avgData.map(val => (val > 110) ? 'rgb(220, 38, 38)' : 'rgb(22, 163, 74)');
 
@@ -1084,37 +1141,48 @@
                     options: {
                         responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
-                        scales: { 
-                            y: { 
-                                beginAtZero: true,
-                                title: { display: true, text: 'Menit' }
-                            } 
-                        }
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'Menit' } } }
                     }
                 });
             }
 
-            // Print Action
-            document.getElementById('btn-print').addEventListener('click', () => {
-                window.print();
-            });
-
             // --- BOOTSTRAP APP ---
+            document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+            function tick() {
+                const now = new Date();
+                const pad = (n) => n.toString().padStart(2, '0');
+                document.getElementById('live-clock-time').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+                
+                const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+                document.getElementById('live-clock-date').textContent = `${hari[now.getDay()]}, ${now.getDate()} ${bulan[now.getMonth()]}`;
+                
+                if (state.master.isOperating && state.master.startTime) {
+                    const elapsed = Date.now() - state.master.startTime + state.master.totalMs;
+                    const hrs = Math.floor(elapsed / 3600000);
+                    const mins = Math.floor((elapsed % 3600000) / 60000);
+                    document.getElementById('master-duration-text').textContent = `${pad(hrs)}:${pad(mins)}`;
+                }
+            }
+
             setTimeout(() => document.getElementById('welcome-screen').classList.add('hidden'), 2500);
             
-            loadLocalState();
+            updateNetworkStatus();
+            restoreSetupUI();
             updateMasterUI();
-            updateClock();
-            setInterval(updateClock, 1000); // 1 sec tick for clock
+            updateSyncUI();
             
-            progressInterval = setInterval(updateProgressBars, 60000); // 1 min tick for progress bars
+            tick();
+            setInterval(tick, 1000);
+            progressInterval = setInterval(updateProgressBars, 60000);
             
-            setDefaultDateTime();
+            document.getElementById('activity-date').value = getTodayDateStr();
+            document.getElementById('activity-time').value = new Date().toTimeString().split(' ')[0].substring(0, 5);
+            
             renderSwitches();
             calculateLiveRamp();
-
-            // Fetch background data awal untuk kalkulasi live sisa
-            fetchServerData().then(() => calculateLiveRamp());
+            processReportData();
         });
     </script>
 </body>
