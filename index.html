@@ -166,8 +166,8 @@
                         <div class="col-span-2 sm:col-span-1">
                             <label class="block text-xs font-bold text-gray-500 mb-1">Shift / Regu</label>
                             <select id="setup-shift" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-primary outline-none transition-all">
-                                <option value="Shift 1">Shift 1 (Pagi)</option>
-                                <option value="Shift 2">Shift 2 (Malam)</option>
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
                             </select>
                         </div>
                     </div>
@@ -189,23 +189,31 @@
                     </div>
 
                     <div class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                        <label class="block text-xs font-bold text-gray-700 mb-2">Posisi Awal Rebusan (Meneruskan Sisa Kemarin)</label>
+                        <label class="block text-xs font-bold text-gray-700 mb-2">Posisi Awal Rebusan</label>
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="flex items-center space-x-2">
                                 <span class="font-bold w-6">R1:</span>
-                                <select id="setup-r1" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
+                                <select id="setup-r1" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold">
+                                    <option value="tutup">Tutup (Kosong)</option><option value="buka">Buka (Sedang Rebus)</option>
+                                </select>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-bold w-6">R2:</span>
-                                <select id="setup-r2" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
+                                <select id="setup-r2" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold">
+                                    <option value="tutup">Tutup (Kosong)</option><option value="buka">Buka (Sedang Rebus)</option>
+                                </select>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-bold w-6">R3:</span>
-                                <select id="setup-r3" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
+                                <select id="setup-r3" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold">
+                                    <option value="tutup">Tutup (Kosong)</option><option value="buka">Buka (Sedang Rebus)</option>
+                                </select>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="font-bold w-6">R4:</span>
-                                <select id="setup-r4" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold"><option value="idle">Kosong</option><option value="loading">Sudah Isi (Loading)</option><option value="sterilization">Sedang Rebus (Sterilization)</option><option value="unloading">Siap Bongkar (Unloading)</option></select>
+                                <select id="setup-r4" class="flex-1 bg-white border border-gray-300 rounded p-1 text-[10px] font-bold">
+                                    <option value="tutup">Tutup (Kosong)</option><option value="buka">Buka (Sedang Rebus)</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -232,7 +240,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="kontrol-container">
-                    <!-- Digenerate oleh JS -->
+                    <!-- Digenerate oleh JS (Buka / Tutup Saja) -->
                 </div>
             </div>
 
@@ -244,9 +252,8 @@
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 min-h-[50vh]">
                     <div id="history-content">
                         <div class="flex space-x-2 mb-4 border-b border-gray-100 pb-4 overflow-x-auto scrollbar-hide">
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-full whitespace-nowrap">ISI (Loading)</span>
-                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full whitespace-nowrap">REBUS (Sterilization)</span>
-                            <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full whitespace-nowrap">BONGKAR (Unloading)</span>
+                            <span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full whitespace-nowrap">BUKA (Proses)</span>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full whitespace-nowrap">TUTUP (Selesai)</span>
                         </div>
                         <div id="history-list" class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
                             <!-- Diisi JS -->
@@ -361,7 +368,7 @@
                         </div>
                         
                         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">Kapasitas (Throughput)</h3>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase flex items-center justify-between">Kapasitas Pabrik</h3>
                             <div class="mt-2 flex items-baseline">
                                 <span id="metric-throughput" class="text-2xl font-black text-blue-700">0.0</span>
                                 <span class="ml-1 text-xs font-bold text-gray-500">Ton/Jam</span>
@@ -428,9 +435,9 @@
                             <li>Buka tab <strong>Kontrol Panel</strong>.</li>
                             <li>Tentukan <strong>Shift</strong> yang bertugas.</li>
                             <li>Isi <strong>Restan</strong> (sisa kemarin) dan <strong>Buah Masuk</strong> hari ini.</li>
-                            <li>Atur posisi awal R1-R4.</li>
+                            <li>Atur posisi awal R1-R4 (Pilih Buka jika sedang merebus/isi, atau Tutup jika kosong).</li>
                             <li>Klik <strong>Simpan Setup</strong>.</li>
-                            <li>Tekan <strong>Mulai Proses Pabrik</strong> untuk mulai menghitung Jam Olah.</li>
+                            <li>Tekan <strong>Mulai Proses Pabrik</strong> untuk mulai menghitung Jam Olah secara keseluruhan.</li>
                         </ol>
                     </div>
                 </div>
@@ -475,23 +482,21 @@
                 saklar: [], aktivitas: [], master: [], harian: []
             };
 
-            // State operasional mesin saat ini
+            // State operasional mesin saat ini (BUKA/TUTUP Saja)
             const state = JSON.parse(localStorage.getItem('pksCurrentState')) || {
                 master: { isOperating: false, startTime: null, totalMs: 0 },
                 setup: { shift: 'Shift 1', restan: 0, buahMasuk: 0 },
                 switches: [
-                    { id: 1, name: 'Rebusan 1', phase: 'idle', phaseTime: null, tonase: 33 },
-                    { id: 2, name: 'Rebusan 2', phase: 'idle', phaseTime: null, tonase: 33 },
-                    { id: 3, name: 'Rebusan 3', phase: 'idle', phaseTime: null, tonase: 33 },
-                    { id: 4, name: 'Rebusan 4', phase: 'idle', phaseTime: null, tonase: 33 },
+                    { id: 1, name: 'Rebusan 1', phase: 'tutup', phaseTime: null, tonase: 33 },
+                    { id: 2, name: 'Rebusan 2', phase: 'tutup', phaseTime: null, tonase: 33 },
+                    { id: 3, name: 'Rebusan 3', phase: 'tutup', phaseTime: null, tonase: 33 },
+                    { id: 4, name: 'Rebusan 4', phase: 'tutup', phaseTime: null, tonase: 33 },
                 ],
             };
 
             const phaseColors = {
-                'idle': { bg: 'bg-gray-100', text: 'text-gray-500', label: 'STANDBY / KOSONG' },
-                'loading': { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'ISI BUAH' },
-                'sterilization': { bg: 'bg-red-100', text: 'text-red-700', label: 'PROSES REBUS' },
-                'unloading': { bg: 'bg-green-100', text: 'text-green-700', label: 'BONGKAR BUAH' }
+                'tutup': { bg: 'bg-gray-100', text: 'text-gray-500', label: 'TUTUP / STANDBY' },
+                'buka':  { bg: 'bg-red-100', text: 'text-red-700', label: 'BUKA / PROSES' }
             };
 
             let durationChart = null;
@@ -548,12 +553,10 @@
             }
 
             function queueDataForSync(payload) {
-                payload.timestamp = new Date().toISOString(); // Waktu pasti saat event terjadi (walau offline)
+                payload.timestamp = new Date().toISOString(); 
                 
-                // Tambah ke queue
                 syncQueue.push(payload);
                 
-                // Injeksi juga ke localDB agar laporan langsung update tanpa menunggu server
                 if (payload.type === 'switch_log') {
                     localDB.saklar.push({ Timestamp: payload.timestamp, NamaAlat: payload.switchName, Aksi: payload.action, Tonase: payload.tonase, DurasiMenit: payload.durasiMenit });
                 } else if (payload.type === 'activity_log') {
@@ -566,7 +569,6 @@
 
                 saveStateToLocal();
                 
-                // Refresh tampilan histori/laporan jika sedang dibuka
                 renderHistory();
                 renderActivities();
                 processReportData();
@@ -601,7 +603,6 @@
             window.addEventListener('online', updateNetworkStatus);
             window.addEventListener('offline', updateNetworkStatus);
 
-            // Fetch & Push Data (Server Comm)
             async function uploadQueueToCloud() {
                 if (!navigator.onLine) return showToast("Tidak ada koneksi internet. Bekerja dalam mode offline.", "warning");
                 if (syncQueue.length === 0) return showToast("Semua data sudah tersinkron", "success");
@@ -648,7 +649,6 @@
                     const response = await fetch(APPSCRIPT_URL);
                     const result = await response.json();
                     if(result.status === 'success') {
-                        // Timpa database lokal dengan data dari server yang lebih lengkap (Master)
                         localDB = result.data;
                         saveStateToLocal();
                         showToast("Data terbaru berhasil ditarik dari Cloud.", "success");
@@ -668,7 +668,6 @@
             document.getElementById('btn-sync-upload').addEventListener('click', uploadQueueToCloud);
             document.getElementById('btn-sync-download').addEventListener('click', downloadCloudData);
 
-            // --- LOGIKA UI KONTROL PANEL ---
             function restoreSetupUI() {
                 document.getElementById('setup-shift').value = state.setup.shift;
                 document.getElementById('setup-restan').value = state.setup.restan;
@@ -751,7 +750,7 @@
 
             function updateProgressBars() {
                 state.switches.forEach(sw => {
-                    if (sw.phase === 'sterilization' && sw.phaseTime) {
+                    if (sw.phase === 'buka' && sw.phaseTime) {
                         const elapsedMins = (Date.now() - sw.phaseTime) / 60000;
                         const targetMins = 90;
                         let percent = (elapsedMins / targetMins) * 100;
@@ -769,9 +768,9 @@
                                 textEl.textContent = "OVERTIME!";
                                 textEl.className = "text-[9px] font-bold text-red-600";
                             } else {
-                                barEl.className = "h-full rounded-full bg-blue-500 progress-bar-stripes";
+                                barEl.className = "h-full rounded-full bg-red-500 progress-bar-stripes";
                                 textEl.textContent = "Proses Rebus...";
-                                textEl.className = "text-[9px] font-bold text-blue-600";
+                                textEl.className = "text-[9px] font-bold text-red-700";
                             }
                         }
                     }
@@ -786,20 +785,20 @@
                     const pInfo = phaseColors[sw.phase];
                     
                     let progressHtml = '';
-                    if (sw.phase === 'sterilization') {
+                    if (sw.phase === 'buka') {
                         progressHtml = `
                             <div class="mt-2 mb-1 w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
-                                <div id="prog-bar-${sw.id}" class="h-full rounded-full bg-blue-500 progress-bar-stripes" style="width: 0%"></div>
+                                <div id="prog-bar-${sw.id}" class="h-full rounded-full bg-red-500 progress-bar-stripes" style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between items-center mb-2">
-                                <span id="prog-text-${sw.id}" class="text-[9px] font-bold text-blue-600 uppercase">Menghitung Waktu...</span>
+                                <span id="prog-text-${sw.id}" class="text-[9px] font-bold text-red-700 uppercase">Menghitung Waktu...</span>
                                 <span id="prog-time-${sw.id}" class="text-[10px] font-black text-gray-700 font-mono">0m</span>
                             </div>
                         `;
                     }
 
                     const card = document.createElement('div');
-                    card.className = `switch-card bg-white p-4 rounded-2xl border ${sw.phase === 'sterilization' ? 'border-red-200 shadow-md' : 'border-gray-200 shadow-sm'} flex flex-col relative transition-all`;
+                    card.className = `switch-card bg-white p-4 rounded-2xl border ${sw.phase === 'buka' ? 'border-red-200 shadow-md' : 'border-gray-200 shadow-sm'} flex flex-col relative transition-all`;
                     
                     card.innerHTML = `
                         <div class="flex justify-between items-start mb-3">
@@ -809,16 +808,14 @@
                         
                         <div class="mb-3 bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center justify-between">
                             <label class="text-[10px] font-bold text-slate-500 uppercase">Muatan (Ton)</label>
-                            <input type="number" id="input-tonase-${sw.id}" value="${sw.tonase || 33}" step="0.1" class="w-16 bg-white border border-gray-300 rounded px-1.5 py-1 text-xs font-bold text-center text-gray-800 focus:ring-1 focus:ring-primary outline-none" ${sw.phase === 'idle' ? '' : 'disabled'}>
+                            <input type="number" id="input-tonase-${sw.id}" value="${sw.tonase || 33}" step="0.1" class="w-16 bg-white border border-gray-300 rounded px-1.5 py-1 text-xs font-bold text-center text-gray-800 focus:ring-1 focus:ring-primary outline-none" ${sw.phase === 'tutup' ? '' : 'disabled'}>
                         </div>
                         
                         ${progressHtml}
 
                         <div class="grid grid-cols-2 gap-2 mt-auto">
-                            <button data-id="${sw.id}" data-action="loading" class="btn-action ${sw.phase === 'idle' ? 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'idle' ? '' : 'disabled'}>ISI</button>
-                            <button data-id="${sw.id}" data-action="sterilization" class="btn-action ${sw.phase === 'loading' ? 'bg-red-500 hover:bg-red-600 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'loading' ? '' : 'disabled'}>REBUS</button>
-                            <button data-id="${sw.id}" data-action="unloading" class="btn-action ${sw.phase === 'sterilization' ? 'bg-green-500 hover:bg-green-600 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'sterilization' ? '' : 'disabled'}>BONGKAR</button>
-                            <button data-id="${sw.id}" data-action="idle" class="btn-action ${sw.phase === 'unloading' ? 'bg-gray-800 hover:bg-gray-900 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'unloading' ? '' : 'disabled'}>SELESAI</button>
+                            <button data-id="${sw.id}" data-action="buka" class="btn-action ${sw.phase === 'tutup' ? 'bg-red-500 hover:bg-red-600 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'tutup' ? '' : 'disabled'}>BUKA</button>
+                            <button data-id="${sw.id}" data-action="tutup" class="btn-action ${sw.phase === 'buka' ? 'bg-gray-800 hover:bg-gray-900 text-white shadow-sm' : 'bg-gray-100 text-gray-400'} py-2 rounded-lg font-bold text-xs" ${sw.phase === 'buka' ? '' : 'disabled'}>TUTUP</button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -831,10 +828,10 @@
                         const sw = state.switches.find(s => s.id === id);
                         
                         let durasiMenit = 0;
-                        if(newPhase === 'loading') {
+                        if(newPhase === 'buka') {
                             sw.tonase = parseFloat(document.getElementById(`input-tonase-${id}`).value) || 33;
-                        } else if (newPhase === 'unloading') {
-                            if(sw.phase === 'sterilization' && sw.phaseTime) {
+                        } else if (newPhase === 'tutup') {
+                            if(sw.phase === 'buka' && sw.phaseTime) {
                                 durasiMenit = ((Date.now() - sw.phaseTime) / 60000).toFixed(2);
                             }
                         }
@@ -867,7 +864,7 @@
                 let buahDalamProses = 0;
                 
                 state.switches.forEach(sw => {
-                    if(sw.phase === 'loading' || sw.phase === 'sterilization') {
+                    if(sw.phase === 'buka') {
                         buahDalamProses += (sw.tonase || 33);
                     }
                 });
@@ -875,7 +872,8 @@
                 let totalSelesaiLokal = 0;
                 if(localDB.saklar) {
                     localDB.saklar.forEach(log => {
-                        if(log.Aksi === 'unloading' && isTodayNative(log.Timestamp)) {
+                        // Tutup mengartikan siklus selesai dihitung
+                        if(log.Aksi === 'tutup' && isTodayNative(log.Timestamp)) {
                             totalSelesaiLokal += parseFloat(log.Tonase || 33);
                         }
                     });
@@ -886,7 +884,6 @@
                 document.getElementById('live-sisa-ramp').textContent = sisaLive.toFixed(1);
             }
 
-            // --- TAB & FORM KEGIATAN ---
             const tabButtons = document.querySelectorAll('.nav-item');
             const tabContents = document.querySelectorAll('.tab-content');
             
@@ -921,16 +918,15 @@
                 renderActivities();
             });
 
-            // --- RENDER DATA LOKAL ---
             function renderHistory() {
                 const logs = localDB.saklar || [];
                 const container = document.getElementById('history-list');
                 container.innerHTML = '';
-                const colors = { 'loading': 'text-yellow-600 bg-yellow-50 border-yellow-200', 'sterilization': 'text-red-600 bg-red-50 border-red-200', 'unloading': 'text-green-600 bg-green-50 border-green-200' };
-                const labels = { 'loading': 'Isi Buah', 'sterilization': 'Mulai Rebus', 'unloading': 'Bongkar' };
+                const colors = { 'buka': 'text-red-600 bg-red-50 border-red-200', 'tutup': 'text-gray-600 bg-gray-50 border-gray-200' };
+                const labels = { 'buka': 'Buka (Proses)', 'tutup': 'Tutup (Selesai)' };
 
                 [...logs].reverse().slice(0, 50).forEach(log => {
-                    if(!log.Timestamp || log.Aksi === 'idle' || log.Aksi === 'close' || log.Aksi === 'open') return; 
+                    if(!log.Timestamp || log.Aksi === 'idle' || log.Aksi === 'loading' || log.Aksi === 'unloading' || log.Aksi === 'sterilization') return; 
                     const c = colors[log.Aksi] || 'text-gray-600 bg-gray-50';
                     const durasi = log.DurasiMenit ? `<span class="ml-auto text-[10px] font-bold text-gray-500 bg-white px-2 py-0.5 rounded border">Durasi: ${parseFloat(log.DurasiMenit).toFixed(0)}m</span>` : '';
                     
@@ -973,7 +969,6 @@
                 if(container.innerHTML === '') container.innerHTML = '<p class="text-center text-sm text-gray-500 py-5">Belum ada data kegiatan.</p>';
             }
 
-            // --- REPORTING PINTAR & KALKULATOR (Sesuai Permintaan Spesifik) ---
             document.getElementById('report-filter').addEventListener('change', processReportData);
 
             function processReportData() {
@@ -1014,13 +1009,14 @@
 
                 // 4. Data Siklus Rebusan
                 let totalTonDiolah = 0;
-                let siklusUnloading = 0; // "Total Rebusan" (Siklus)
+                let totalSiklus = 0; // Total Rebusan (sekali siklus buka tutup)
                 let durasiMap = { 'Rebusan 1': [], 'Rebusan 2': [], 'Rebusan 3': [], 'Rebusan 4': [] };
                 let akumulasiDurasiMenit = 0;
 
                 arrSaklar.forEach(log => {
-                    if (log.Aksi === 'unloading') {
-                        siklusUnloading++;
+                    // Ketika ditekan Tutup, artinya 1 siklus usai
+                    if (log.Aksi === 'tutup') {
+                        totalSiklus++;
                         totalTonDiolah += parseFloat(log.Tonase || 33);
                         if (log.DurasiMenit && parseFloat(log.DurasiMenit) > 0) {
                             const d = parseFloat(log.DurasiMenit);
@@ -1035,24 +1031,25 @@
                 // 5. RUMUS ANALISA KINERJA KUSTOM:
                 // Rumus A: Realisasi Kapasitas Rebusan = (Buah Masuk + Restan) / Total Rebusan
                 let realisasiKapasitasRebusan = 0;
-                if (siklusUnloading > 0) {
-                    realisasiKapasitasRebusan = totalBuahTersedia / siklusUnloading;
+                if (totalSiklus > 0) {
+                    realisasiKapasitasRebusan = totalBuahTersedia / totalSiklus;
                 }
                 
                 // Rumus B: Kapasitas Pabrik = (Realisasi Kapasitas Rebusan * Total Rebusan) / Akumulasi Durasi Lama
                 let kapasitasPabrik = 0; // Throughput
                 if (akumulasiDurasiJam > 0) {
-                    kapasitasPabrik = (realisasiKapasitasRebusan * siklusUnloading) / akumulasiDurasiJam;
+                    kapasitasPabrik = (realisasiKapasitasRebusan * totalSiklus) / akumulasiDurasiJam;
                 } else if (totalJamOlah > 0) {
-                    // Fallback jika tidak ada durasi saklar, pakai jam olah master
-                    kapasitasPabrik = (realisasiKapasitasRebusan * siklusUnloading) / totalJamOlah;
+                    // Fallback jika durasi tiap mesin belum ada
+                    kapasitasPabrik = (realisasiKapasitasRebusan * totalSiklus) / totalJamOlah;
                 }
 
                 // 6. WIP & Sisa Ramp
                 let totalWipTon = 0;
                 if(filter === 'today') {
                     state.switches.forEach(sw => {
-                        if(sw.phase === 'loading' || sw.phase === 'sterilization') { 
+                        // Jika terbuka, artinya sedang direbus (WIP)
+                        if(sw.phase === 'buka') { 
                             totalWipTon += parseFloat(sw.tonase || 33); 
                         }
                     });
@@ -1094,19 +1091,19 @@
                 // 9. Sele-sele (Rumus Kustom Ditampilkan)
                 document.getElementById('sele-sele-content').innerHTML = `
                     <p class="border-b border-yellow-200 pb-1 mb-1 text-[10px] text-gray-500">*Sesuai Rumus Permintaan Analisa Spesifik</p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[A] Total Ketersediaan:</span> Restan + Masuk = <strong>${totalBuahTersedia.toFixed(1)} Ton</strong></p>
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[B] Total Siklus:</span> <strong>${siklusUnloading}x Bongkar</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[A] Total Ketersediaan:</span> Masuk + Restan = <strong>${totalBuahTersedia.toFixed(1)} Ton</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[B] Total Rebusan:</span> <strong>${totalSiklus}x Siklus (Tutup)</strong></p>
                     
                     <div class="bg-yellow-100/50 p-2 my-1 border-l-2 border-yellow-500">
-                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Realisasi Kapasitas Rebusan:</span><br> [A] Ketersediaan ÷ [B] Total Siklus</p>
-                        <p>${totalBuahTersedia.toFixed(1)} ÷ ${siklusUnloading || 1} = <strong class="text-blue-700">${realisasiKapasitasRebusan.toFixed(2)} Ton/Siklus</strong></p>
+                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Realisasi Kapasitas Rebusan:</span><br> [A] Ketersediaan ÷ [B] Total Rebusan</p>
+                        <p>${totalBuahTersedia.toFixed(1)} ÷ ${totalSiklus || 1} = <strong class="text-blue-700">${realisasiKapasitasRebusan.toFixed(2)} Ton/Siklus</strong></p>
                     </div>
 
-                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[C] Akumulasi Durasi (Jam):</span> Total lama proses masak = <strong>${akumulasiDurasiJam.toFixed(2)} Jam</strong></p>
+                    <p class="border-b border-yellow-200 pb-1 mb-1"><span class="font-bold text-gray-600">[C] Akumulasi Durasi Buka-Tutup:</span> <strong>${akumulasiDurasiJam.toFixed(2)} Jam</strong></p>
                     
                     <div class="bg-yellow-100/50 p-2 my-1 border-l-2 border-yellow-500">
-                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Kapasitas Pabrik (Throughput):</span><br> (Realisasi Kapasitas Rebusan × Total Siklus) ÷ [C] Akumulasi Durasi</p>
-                        <p>(${realisasiKapasitasRebusan.toFixed(2)} × ${siklusUnloading}) ÷ ${akumulasiDurasiJam.toFixed(2) || totalJamOlah.toFixed(2)} = <strong class="text-green-700">${kapasitasPabrik.toFixed(2)} Ton/Jam</strong></p>
+                        <p class="mb-1"><span class="font-bold text-gray-800">Rumus Kapasitas Pabrik:</span><br> (Realisasi Kap. × Jml. Rebusan) ÷ [C] Akumulasi Durasi</p>
+                        <p>(${realisasiKapasitasRebusan.toFixed(2)} × ${totalSiklus}) ÷ ${akumulasiDurasiJam.toFixed(2) || totalJamOlah.toFixed(2)} = <strong class="text-green-700">${kapasitasPabrik.toFixed(2)} Ton/Jam</strong></p>
                     </div>
 
                     <p class="pt-1"><span class="font-bold text-gray-600">Sisa Di Lantai (Ramp):</span> Ketersediaan - Olah Aktual - Dalam Alat = <strong class="${sisaRamp > 0 ? 'text-red-600' : 'text-gray-800'}">${sisaRamp.toFixed(1)} Ton</strong></p>
@@ -1146,7 +1143,6 @@
                 });
             }
 
-            // --- BOOTSTRAP APP ---
             document.getElementById('btn-print').addEventListener('click', () => window.print());
 
             function tick() {
