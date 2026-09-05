@@ -385,7 +385,7 @@
                         
                         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
                              <div class="absolute top-0 right-0 w-12 h-12 bg-yellow-50 rounded-bl-full -z-0"></div>
-                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative" title="Asumsi Oil Extraction Rate 20%">Est. CPO (OER 20%)</h3>
+                            <h3 class="text-[10px] font-bold text-gray-500 uppercase z-10 relative" title="Asumsi Oil Extraction Rate 20%">Est. CPO (OER 26.75%)</h3>
                             <div class="mt-2 flex items-baseline z-10 relative">
                                 <span id="metric-est-cpo" class="text-2xl font-black text-yellow-600">0</span>
                                 <span class="ml-1 text-xs font-bold text-gray-500">Ton</span>
@@ -1055,7 +1055,7 @@
                     });
                 }
                 const sisaRamp = totalBuahTersedia - totalTonDiolah - totalWipTon;
-                const estimasiCpo = totalTonDiolah * 0.20; 
+                const estimasiCpo = totalTonDiolah * 0.2675; 
 
                 // 7. Update UI Card
                 document.getElementById('metric-total-tersedia').textContent = totalBuahTersedia.toFixed(1);
